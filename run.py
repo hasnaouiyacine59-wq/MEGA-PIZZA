@@ -27,6 +27,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default='user', nullable=False)
     is_active = db.Column(db.Boolean, default=True)
+    phone_number = db.Column(db.String(20))
     
     def get_id(self):
         return str(self.user_id)
@@ -2084,6 +2085,7 @@ def manage_drivers():
                             <div class="stat-label">Earnings</div>
                         </div>
                     </div>
+                    <!-- Add Driver Button -->
                     
                     <div class="action-buttons">
                         <button class="btn-action btn-view" onclick="viewDriver({driver.driver_id})">
@@ -2361,18 +2363,33 @@ def register_driver():
         return redirect(url_for('login'))
     
     if request.method == 'POST':
-        # Create User account first
+        # Get form data
         username = request.form.get('username')
         email = request.form.get('email')
-        phone = request.form.get('phone')
         password = request.form.get('password')
+        phone = request.form.get('phone')
+        
+        license_number = request.form.get('license_number')
+        vehicle_type = request.form.get('vehicle_type')
+        vehicle_model = request.form.get('vehicle_model')
+        license_plate = request.form.get('license_plate')
+        
+        # Validation
+        if not all([username, email, password, license_number, vehicle_type]):
+            flash('Please fill in all required fields', 'danger')
+            return redirect(url_for('register_driver'))
         
         # Check if user exists
-        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        existing_user = User.query.filter(
+            (User.username == username) | (User.email == email)
+        ).first()
+        
         if existing_user:
             flash('Username or email already exists', 'danger')
-        else:
-            # Create User
+            return redirect(url_for('register_driver'))
+        
+        try:
+            # Create User account
             user = User(
                 username=username,
                 email=email,
@@ -2381,71 +2398,261 @@ def register_driver():
                 is_active=True
             )
             user.password = password
+            
             db.session.add(user)
             db.session.flush()  # Get user_id
             
             # Create Driver profile
             driver = Driver(
                 user_id=user.user_id,
-                license_number=request.form.get('license_number'),
-                vehicle_type=request.form.get('vehicle_type'),
-                vehicle_model=request.form.get('vehicle_model'),
-                license_plate=request.form.get('license_plate'),
+                license_number=license_number,
+                vehicle_type=vehicle_type,
+                vehicle_model=vehicle_model,
+                license_plate=license_plate,
+                is_available=True,
+                is_on_shift=False,
+                rating=0.0,
+                total_deliveries=0,
+                completed_deliveries=0,
+                failed_deliveries=0,
+                total_earnings=0.0,
                 emergency_contact=request.form.get('emergency_contact'),
                 emergency_phone=request.form.get('emergency_phone')
             )
+            
             db.session.add(driver)
             db.session.commit()
             
             flash(f'Driver {username} registered successfully!', 'success')
             return redirect(url_for('manage_drivers'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error registering driver: {str(e)}', 'danger')
+            return redirect(url_for('register_driver'))
     
-    return '''
+    # GET request - show form
+    return render_template_string('''
     <!DOCTYPE html>
     <html>
     <head>
         <title>Register Driver - Mega Pizza</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            :root {
+                --primary-color: #ff6b35;
+                --secondary-color: #ffa500;
+            }
+            
+            .form-container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 30px;
+            }
+            
+            .form-header {
+                text-align: center;
+                margin-bottom: 30px;
+                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                color: white;
+                padding: 40px 20px;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+            }
+            
+            .form-header .icon {
+                font-size: 3rem;
+                margin-bottom: 15px;
+                display: inline-block;
+                animation: bounce 2s infinite;
+            }
+            
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+            }
+            
+            .form-card {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                padding: 40px;
+                margin-top: -20px;
+                position: relative;
+                z-index: 1;
+            }
+            
+            .form-section {
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #f8f9fa;
+            }
+            
+            .section-title {
+                color: var(--primary-color);
+                font-weight: 600;
+                margin-bottom: 20px;
+                padding-left: 10px;
+                border-left: 4px solid var(--primary-color);
+            }
+            
+            .required::after {
+                content: " *";
+                color: #dc3545;
+            }
+            
+            .form-control:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25);
+            }
+            
+            .btn-register {
+                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                border: none;
+                color: white;
+                padding: 15px 30px;
+                font-size: 1.1rem;
+                border-radius: 10px;
+                transition: all 0.3s ease;
+            }
+            
+            .btn-register:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+            }
+            
+            .password-toggle {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                color: #6c757d;
+                cursor: pointer;
+            }
+            
+            .input-group {
+                position: relative;
+            }
+            
+            @media (max-width: 768px) {
+                .form-container {
+                    padding: 15px;
+                }
+                
+                .form-card {
+                    padding: 20px;
+                }
+                
+                .form-header {
+                    padding: 30px 15px;
+                }
+            }
+        </style>
     </head>
-    <body>
-        <div class="container mt-5">
-            <h2 class="mb-4"><i class="fas fa-truck me-2"></i>Register New Driver</h2>
-            <div class="card">
-                <div class="card-body">
-                    <form method="POST">
-                        <h5 class="card-title mb-3">Account Information</h5>
+    <body style="background: #f8f9fa; min-height: 100vh;">
+        <!-- Navigation -->
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="/admin/drivers">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Drivers
+                </a>
+                <span class="navbar-text text-white">
+                    <i class="fas fa-user-shield me-1"></i> Admin: {{ current_user.username }}
+                </span>
+            </div>
+        </nav>
+        
+        <!-- Main Form -->
+        <div class="form-container">
+            <div class="form-header">
+                <div class="icon">🚚</div>
+                <h1>Register New Driver</h1>
+                <p>Add a delivery driver to your Mega Pizza fleet</p>
+            </div>
+            
+            <div class="form-card">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {% if category == 'success' %}
+                                    <i class="fas fa-check-circle me-2"></i>
+                                {% elif category == 'danger' %}
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                {% endif %}
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" id="driverForm">
+                    <!-- Section 1: Account Information -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-user-circle me-2"></i>Account Information
+                        </h3>
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label>Username *</label>
-                                <input type="text" class="form-control" name="username" required>
+                                <label class="form-label required">Username</label>
+                                <input type="text" class="form-control" name="username" 
+                                       placeholder="driver_username" required
+                                       pattern="[A-Za-z0-9_]+" title="Only letters, numbers, and underscores">
+                                <small class="text-muted">Letters, numbers, and underscores only</small>
                             </div>
+                            
                             <div class="col-md-6 mb-3">
-                                <label>Email *</label>
-                                <input type="email" class="form-control" name="email" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label>Phone *</label>
-                                <input type="tel" class="form-control" name="phone" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label>Password *</label>
-                                <input type="password" class="form-control" name="password" required minlength="8">
+                                <label class="form-label required">Email Address</label>
+                                <input type="email" class="form-control" name="email" 
+                                       placeholder="driver@example.com" required>
                             </div>
                         </div>
                         
-                        <h5 class="card-title mb-3 mt-4">Driver Information</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label>License Number *</label>
-                                <input type="text" class="form-control" name="license_number" required>
+                                <label class="form-label required">Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" name="password" 
+                                           id="password" placeholder="••••••••" required minlength="8">
+                                    <button type="button" class="password-toggle" id="togglePassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">Minimum 8 characters</small>
                             </div>
+                            
                             <div class="col-md-6 mb-3">
-                                <label>Vehicle Type *</label>
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" name="phone" 
+                                       placeholder="+1234567890">
+                                <small class="text-muted">For delivery coordination</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 2: Driver Information -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-id-card me-2"></i>Driver Information
+                        </h3>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">License Number</label>
+                                <input type="text" class="form-control" name="license_number" 
+                                       placeholder="DL123456" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Vehicle Type</label>
                                 <select class="form-control" name="vehicle_type" required>
-                                    <option value="">Select Vehicle</option>
+                                    <option value="">Select Vehicle Type</option>
                                     <option value="motorcycle">Motorcycle</option>
                                     <option value="car">Car</option>
                                     <option value="bicycle">Bicycle</option>
@@ -2453,42 +2660,144 @@ def register_driver():
                                 </select>
                             </div>
                         </div>
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label>Vehicle Model</label>
-                                <input type="text" class="form-control" name="vehicle_model">
+                                <label class="form-label">Vehicle Model</label>
+                                <input type="text" class="form-control" name="vehicle_model" 
+                                       placeholder="Toyota Corolla, Yamaha FZ, etc.">
                             </div>
+                            
                             <div class="col-md-6 mb-3">
-                                <label>License Plate</label>
-                                <input type="text" class="form-control" name="license_plate">
+                                <label class="form-label">License Plate</label>
+                                <input type="text" class="form-control" name="license_plate" 
+                                       placeholder="ABC-123">
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- Section 3: Emergency Contact -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-phone-alt me-2"></i>Emergency Contact
+                        </h3>
                         
-                        <h5 class="card-title mb-3 mt-4">Emergency Contact</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label>Emergency Contact Name</label>
-                                <input type="text" class="form-control" name="emergency_contact">
+                                <label class="form-label">Emergency Contact Name</label>
+                                <input type="text" class="form-control" name="emergency_contact" 
+                                       placeholder="Contact person name">
                             </div>
+                            
                             <div class="col-md-6 mb-3">
-                                <label>Emergency Phone</label>
-                                <input type="tel" class="form-control" name="emergency_phone">
+                                <label class="form-label">Emergency Phone</label>
+                                <input type="tel" class="form-control" name="emergency_phone" 
+                                       placeholder="+1234567890">
                             </div>
                         </div>
-                        
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">
+                    </div>
+                    
+                    <!-- Submit Buttons -->
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-2">
+                            <button type="submit" class="btn btn-register w-100">
                                 <i class="fas fa-save me-2"></i>Register Driver
                             </button>
-                            <a href="/admin/drivers" class="btn btn-secondary">Cancel</a>
                         </div>
-                    </form>
-                </div>
+                        <div class="col-md-6 mb-2">
+                            <a href="/admin/drivers" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Demo Info -->
+                    <div class="mt-4 alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Information</h6>
+                        <p class="mb-1">• Driver will be able to log in immediately</p>
+                        <p class="mb-1">• Default rating: 0.0 (will update with deliveries)</p>
+                        <p class="mb-0">• Default status: Available, Off Duty</p>
+                    </div>
+                </form>
             </div>
         </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Toggle password visibility
+            document.getElementById('togglePassword').addEventListener('click', function() {
+                const passwordInput = document.getElementById('password');
+                const icon = this.querySelector('i');
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+            
+            // Form validation
+            document.getElementById('driverForm').addEventListener('submit', function(e) {
+                const requiredFields = this.querySelectorAll('input[required], select[required]');
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        field.classList.remove('is-invalid');
+                    }
+                });
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    // Scroll to first invalid field
+                    const firstInvalid = this.querySelector('.is-invalid');
+                    if (firstInvalid) {
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstInvalid.focus();
+                    }
+                    
+                    // Show alert
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-danger alert-dismissible fade show mt-3';
+                    alertDiv.innerHTML = `
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Please fill in all required fields marked with *
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    this.prepend(alertDiv);
+                }
+            });
+            
+            // Real-time validation
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.hasAttribute('required') && !this.value.trim()) {
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.classList.remove('is-invalid');
+                    }
+                });
+            });
+            
+            // Auto-format license plate to uppercase
+            const licensePlateInput = document.querySelector('input[name="license_plate"]');
+            if (licensePlateInput) {
+                licensePlateInput.addEventListener('input', function() {
+                    this.value = this.value.toUpperCase();
+                });
+            }
+        </script>
     </body>
     </html>
-    '''
+    ''')
 # ============================================
 
 @app.route('/admin/drivers/add', methods=['GET', 'POST'])
