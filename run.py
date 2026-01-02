@@ -2303,7 +2303,7 @@ def manage_drivers():
                         <div class="card-body">
                             <h6 class="card-title">Avg Rating</h6>
                             <h2 class="mb-0">
-                                {sum(d.rating for d in drivers)/len(drivers):.1f if drivers else 0.0} 
+                                {(sum(d.rating for d in drivers)/len(drivers) if drivers else 0.0):.1f}
                                 <small>/5</small>
                             </h2>
                         </div>
