@@ -1,0 +1,16 @@
+# Source the .env file
+source .env
+
+# Run container with environment variables
+docker run -d \
+  --name mega_pizza-db-cnt \
+  --env-file .env \
+  -e POSTGRES_DB \
+  -e POSTGRES_USER \
+  -e POSTGRES_PASSWORD \
+  -e TZ \
+  -p "${DB_PORT:-5432}:5432" \
+  -v postgres_data:/var/lib/postgresql/data \
+  -v $(pwd)/backups:/backups \
+  -v $(pwd)/init.sql:/docker-entrypoint-initdb.d/init.sql \
+  mega_pizza-db
