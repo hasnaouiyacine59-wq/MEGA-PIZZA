@@ -13,4 +13,41 @@ docker run -d \
   -v postgres_data:/var/lib/postgresql/data \
   -v $(pwd)/backups:/backups \
   -v $(pwd)/init.sql:/docker-entrypoint-initdb.d/init.sql \
-  mega_pizza-db
+  mega_pizza-db-img
+
+
+
+
+# Build with clean cache
+docker build --no-cache -t mega_pizza-db-img .
+
+# Run with new volume
+docker run -d \
+  --name mega_pizza-db-cnt \
+  -e POSTGRES_DB=mega_pizza_db \
+  -e POSTGRES_USER=mega_pizza_admin \
+  -e POSTGRES_PASSWORD=SecurePass123! \
+  -e TZ=Africa/Algiers \
+  -p 5432:5432 \
+  -v mega_pizza_postgres_data:/var/lib/postgresql/data \
+  mega_pizza-db-img
+
+
+
+
+
+
+
+
+
+
+
+
+  # Create a backup file
+docker exec mega_pizza-db-cnt pg_dump -U mega_pizza_admin -d mega_pizza_db -F c -f /tmp/mega_pizza_backup.dump
+
+# Copy it from container to host
+docker cp mega_pizza-db-cnt:/tmp/mega_pizza_backup.dump ./mega_pizza_backup_$(date +%Y%m%d_%H%M%S).dump
+
+# Or do it in one command (requires volume mount for easier access)
+docker exec mega_pizza-db-cnt pg_dump -U mega_pizza_admin -d mega_pizza_db > mega_pizza_backup_$(date +%Y%m%d_%H%M%S).sql
