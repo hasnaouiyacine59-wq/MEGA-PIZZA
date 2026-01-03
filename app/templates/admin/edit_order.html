@@ -1,0 +1,1134 @@
+[file name]: edit_order.html
+[file content begin]
+{% extends "base.html" %}
+
+{% block title %}Edit Order #{{ order.order_id }} - Mega Pizza Admin{% endblock %}
+
+{% block styles %}
+<style>
+    /* Railway-Inspired Design */
+    :root {
+        --railway-bg: #000000;
+        --railway-card: #0a0a0a;
+        --railway-border: #1a1a1a;
+        --railway-text: #ffffff;
+        --railway-text-secondary: #a0a0a0;
+        --railway-primary: #667eea;
+        --railway-primary-dark: #5a67d8;
+        --railway-success: #10b981;
+        --railway-danger: #ef4444;
+        --railway-warning: #f59e0b;
+        --railway-info: #3b82f6;
+        --railway-purple: #8b5cf6;
+        --railway-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --railway-shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Base Styles */
+    body {
+        background: var(--railway-bg);
+        color: var(--railway-text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        min-height: 100vh;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    /* Back Navigation */
+    .back-nav {
+        margin-bottom: 30px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--railway-text-secondary);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 10px 0;
+        transition: color 0.2s ease;
+    }
+
+    .back-link:hover {
+        color: var(--railway-text);
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 32px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--railway-border);
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+        color: var(--railway-text-secondary);
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    /* Form Container */
+    .form-container {
+        background: var(--railway-card);
+        border: 1px solid var(--railway-border);
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: var(--railway-shadow);
+    }
+
+    /* Form Styles */
+    .form-section {
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--railway-border);
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin: 0;
+    }
+
+    .section-icon {
+        color: var(--railway-primary);
+        font-size: 18px;
+    }
+
+    /* Form Groups */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--railway-text);
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .form-label .required {
+        color: var(--railway-danger);
+        font-size: 12px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--railway-border);
+        border-radius: 6px;
+        font-size: 14px;
+        color: var(--railway-text);
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--railway-primary);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-control.select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a0a0a0' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 40px;
+    }
+
+    .form-control.textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-help {
+        color: var(--railway-text-secondary);
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    /* Order Items */
+    .order-items-section {
+        margin-top: 20px;
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .items-table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--railway-text-secondary);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--railway-border);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .items-table td {
+        padding: 16px;
+        border-bottom: 1px solid var(--railway-border);
+        vertical-align: top;
+    }
+
+    .items-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .item-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: transparent;
+        color: var(--railway-text);
+    }
+
+    .btn-icon.edit {
+        color: var(--railway-info);
+        border-color: var(--railway-info);
+    }
+
+    .btn-icon.edit:hover {
+        background: var(--railway-info);
+        color: white;
+    }
+
+    .btn-icon.delete {
+        color: var(--railway-danger);
+        border-color: var(--railway-danger);
+    }
+
+    .btn-icon.delete:hover {
+        background: var(--railway-danger);
+        color: white;
+    }
+
+    .add-item-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: transparent;
+        color: var(--railway-primary);
+        border: 1px solid var(--railway-primary);
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .add-item-btn:hover {
+        background: var(--railway-primary);
+        color: white;
+    }
+
+    /* Pricing Section */
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+    }
+
+    .pricing-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .pricing-total {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid var(--railway-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .total-label {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--railway-text);
+    }
+
+    .total-amount {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--railway-success);
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .status-pending { 
+        background: rgba(245, 158, 11, 0.15); 
+        color: #f59e0b; 
+    }
+    .status-confirmed { 
+        background: rgba(59, 130, 246, 0.15); 
+        color: #3b82f6; 
+    }
+    .status-preparing { 
+        background: rgba(139, 92, 246, 0.15); 
+        color: #8b5cf6; 
+    }
+    .status-ready { 
+        background: rgba(16, 185, 129, 0.15); 
+        color: #10b981; 
+    }
+    .status-out_for_delivery { 
+        background: rgba(139, 92, 246, 0.25); 
+        color: #8b5cf6; 
+    }
+    .status-delivered { 
+        background: rgba(16, 185, 129, 0.25); 
+        color: #10b981; 
+    }
+    .status-cancelled { 
+        background: rgba(239, 68, 68, 0.15); 
+        color: #ef4444; 
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        padding: 24px;
+        background: var(--railway-card);
+        border: 1px solid var(--railway-border);
+        border-radius: 10px;
+        margin-top: 30px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: var(--railway-primary);
+        color: white;
+        border-color: var(--railway-primary);
+    }
+
+    .btn-primary:hover {
+        background: var(--railway-primary-dark);
+        border-color: var(--railway-primary-dark);
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--railway-text);
+        border-color: var(--railway-border);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--railway-text-secondary);
+        transform: translateY(-2px);
+    }
+
+    .btn-danger {
+        background: transparent;
+        color: var(--railway-danger);
+        border-color: var(--railway-danger);
+    }
+
+    .btn-danger:hover {
+        background: var(--railway-danger);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Alert Messages */
+    .alert {
+        padding: 16px 20px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        border: 1px solid transparent;
+    }
+
+    .alert-info {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: #3b82f6;
+    }
+
+    .alert-warning {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #f59e0b;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            padding: 16px;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .pricing-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .items-table {
+            font-size: 13px;
+        }
+        
+        .items-table th,
+        .items-table td {
+            padding: 12px 8px;
+        }
+        
+        .item-actions {
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .btn-icon {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .page-title {
+            font-size: 24px;
+        }
+        
+        .form-container {
+            padding: 20px;
+        }
+        
+        .total-label {
+            font-size: 16px;
+        }
+        
+        .total-amount {
+            font-size: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Back Navigation -->
+    <div class="back-nav">
+        <a href="{{ url_for('admin.view_order', order_id=order.order_id) }}" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Back to Order Details
+        </a>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">Edit Order #{{ order.order_id }}</h1>
+        <p class="page-subtitle">
+            Update order details, status, and pricing
+            <span class="status-badge status-{{ order.order_status }}" style="margin-left: 12px;">
+                <i class="fas fa-circle" style="font-size: 8px;"></i>
+                {{ order.order_status|replace('_', ' ')|title }}
+            </span>
+        </p>
+    </div>
+
+    <!-- Alert Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category if category != 'message' else 'info' }}">
+                    <i class="fas fa-info-circle me-2"></i>{{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form id="editOrderForm" method="POST" action="{{ url_for('admin.edit_order', order_id=order.order_id) }}">
+        <div class="form-container">
+            <!-- Order Information -->
+            <div class="form-section">
+                <div class="section-header">
+                    <i class="fas fa-info-circle section-icon"></i>
+                    <h3 class="section-title">Order Information</h3>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Order Status
+                            <span class="required">*</span>
+                        </label>
+                        <select name="order_status" class="form-control select" required>
+                            <option value="pending" {% if order.order_status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="confirmed" {% if order.order_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="preparing" {% if order.order_status == 'preparing' %}selected{% endif %}>Preparing</option>
+                            <option value="ready" {% if order.order_status == 'ready' %}selected{% endif %}>Ready</option>
+                            <option value="out_for_delivery" {% if order.order_status == 'out_for_delivery' %}selected{% endif %}>Out for Delivery</option>
+                            <option value="delivered" {% if order.order_status == 'delivered' %}selected{% endif %}>Delivered</option>
+                            <option value="cancelled" {% if order.order_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                        <div class="form-help">Current order status in the system</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Payment Status
+                            <span class="required">*</span>
+                        </label>
+                        <select name="payment_status" class="form-control select" required>
+                            <option value="pending" {% if order.payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="paid" {% if order.payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                            <option value="failed" {% if order.payment_status == 'failed' %}selected{% endif %}>Failed</option>
+                            <option value="refunded" {% if order.payment_status == 'refunded' %}selected{% endif %}>Refunded</option>
+                        </select>
+                        <div class="form-help">Current payment status</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Delivery Type
+                            <span class="required">*</span>
+                        </label>
+                        <select name="delivery_type" class="form-control select" required>
+                            <option value="delivery" {% if order.delivery_type == 'delivery' %}selected{% endif %}>Delivery</option>
+                            <option value="pickup" {% if order.delivery_type == 'pickup' %}selected{% endif %}>Pickup</option>
+                        </select>
+                        <div class="form-help">How the customer will receive their order</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Payment Method
+                        </label>
+                        <select name="payment_method" class="form-control select">
+                            <option value="">Select payment method...</option>
+                            <option value="cash" {% if order.payment_method == 'cash' %}selected{% endif %}>Cash</option>
+                            <option value="card" {% if order.payment_method == 'card' %}selected{% endif %}>Credit/Debit Card</option>
+                            <option value="online" {% if order.payment_method == 'online' %}selected{% endif %}>Online Payment</option>
+                            <option value="wallet" {% if order.payment_method == 'wallet' %}selected{% endif %}>Digital Wallet</option>
+                        </select>
+                        <div class="form-help">Method used for payment</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Transaction ID
+                        </label>
+                        <input type="text" name="transaction_id" class="form-control" 
+                               value="{{ order.transaction_id or '' }}" 
+                               placeholder="e.g., tx_123456789">
+                        <div class="form-help">Payment gateway transaction reference</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer & Restaurant -->
+            <div class="form-section">
+                <div class="section-header">
+                    <i class="fas fa-users section-icon"></i>
+                    <h3 class="section-title">Customer & Restaurant</h3>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Customer
+                        </label>
+                        <select name="customer_id" class="form-control select">
+                            <option value="">Select customer...</option>
+                            {% for customer in customers %}
+                                <option value="{{ customer.customer_id }}" 
+                                    {% if order.customer_id == customer.customer_id %}selected{% endif %}>
+                                    {{ customer.name }} ({{ customer.phone_number }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-help">Ordering customer</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Restaurant
+                        </label>
+                        <select name="restaurant_id" class="form-control select">
+                            <option value="">Select restaurant...</option>
+                            {% for restaurant in restaurants %}
+                                <option value="{{ restaurant.restaurant_id }}" 
+                                    {% if order.restaurant_id == restaurant.restaurant_id %}selected{% endif %}>
+                                    {{ restaurant.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-help">Preparing restaurant</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Driver
+                        </label>
+                        <select name="driver_id" class="form-control select">
+                            <option value="">Select driver...</option>
+                            {% for driver in drivers %}
+                                <option value="{{ driver.driver_id }}" 
+                                    {% if order.driver_id == driver.driver_id %}selected{% endif %}>
+                                    {{ driver.user.username }} - {{ driver.vehicle_type|default('No vehicle') }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-help">Assigned delivery driver</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Address
+                        </label>
+                        <select name="address_id" class="form-control select">
+                            <option value="">Select address...</option>
+                            {% for address in addresses %}
+                                <option value="{{ address.address_id }}" 
+                                    {% if order.address_id == address.address_id %}selected{% endif %}>
+                                    {{ address.street }}, {{ address.city }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-help">Delivery address</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="form-section">
+                <div class="section-header">
+                    <i class="fas fa-receipt section-icon"></i>
+                    <h3 class="section-title">Order Items</h3>
+                </div>
+                
+                <div class="order-items-section">
+                    {% if order.order_items %}
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.order_items %}
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600;">
+                                        {% if item.menu_item %}
+                                            {{ item.menu_item.name }}
+                                        {% else %}
+                                            Item #{{ item.item_id }}
+                                        {% endif %}
+                                    </div>
+                                    {% if item.customizations %}
+                                    <div style="font-size: 12px; color: var(--railway-text-secondary);">
+                                        Customizations: {{ item.customizations|join(', ') }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.quantity }}</td>
+                                <td>${{ "%.2f"|format(item.unit_price) }}</td>
+                                <td>${{ "%.2f"|format(item.unit_price * item.quantity) }}</td>
+                                <td>
+                                    <div class="item-actions">
+                                        <button type="button" class="btn-icon edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn-icon delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div style="text-align: center; padding: 20px; color: var(--railway-text-secondary);">
+                        <i class="fas fa-shopping-cart" style="font-size: 36px; margin-bottom: 12px; opacity: 0.5;"></i>
+                        <p>No items in this order</p>
+                    </div>
+                    {% endif %}
+                    
+                    <button type="button" class="add-item-btn">
+                        <i class="fas fa-plus"></i>
+                        Add Item
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="form-section">
+                <div class="section-header">
+                    <i class="fas fa-calculator section-icon"></i>
+                    <h3 class="section-title">Pricing & Fees</h3>
+                </div>
+                
+                <div class="pricing-grid">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Subtotal
+                        </label>
+                        <div class="form-control" style="background: rgba(255, 255, 255, 0.03);">
+                            $<input type="number" name="subtotal" 
+                                   value="{{ "%.2f"|format(order.subtotal) }}" 
+                                   step="0.01" min="0"
+                                   style="background: none; border: none; color: var(--railway-text); width: calc(100% - 10px);">
+                        </div>
+                        <div class="form-help">Sum of all items</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Tax
+                        </label>
+                        <div class="form-control" style="background: rgba(255, 255, 255, 0.03);">
+                            $<input type="number" name="tax" 
+                                   value="{{ "%.2f"|format(order.tax) }}" 
+                                   step="0.01" min="0"
+                                   style="background: none; border: none; color: var(--railway-text); width: calc(100% - 10px);">
+                        </div>
+                        <div class="form-help">Tax amount</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Delivery Fee
+                        </label>
+                        <div class="form-control" style="background: rgba(255, 255, 255, 0.03);">
+                            $<input type="number" name="delivery_fee" 
+                                   value="{{ "%.2f"|format(order.delivery_fee) }}" 
+                                   step="0.01" min="0"
+                                   style="background: none; border: none; color: var(--railway-text); width: calc(100% - 10px);">
+                        </div>
+                        <div class="form-help">Delivery charge</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Discount
+                        </label>
+                        <div class="form-control" style="background: rgba(255, 255, 255, 0.03);">
+                            $<input type="number" name="discount" 
+                                   value="{{ "%.2f"|format(order.discount) }}" 
+                                   step="0.01" min="0"
+                                   style="background: none; border: none; color: var(--railway-text); width: calc(100% - 10px);">
+                        </div>
+                        <div class="form-help">Discount amount</div>
+                    </div>
+                </div>
+                
+                <div class="pricing-total">
+                    <div class="total-label">Total Amount</div>
+                    <div class="total-amount">${{ "%.2f"|format(order.total_amount) }}</div>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="form-section">
+                <div class="section-header">
+                    <i class="fas fa-sticky-note section-icon"></i>
+                    <h3 class="section-title">Additional Information</h3>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">
+                            Special Instructions
+                        </label>
+                        <textarea name="special_instructions" class="form-control textarea" 
+                                  placeholder="Any special instructions from the customer...">{{ order.special_instructions or '' }}</textarea>
+                        <div class="form-help">Customer's special requests or instructions</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Estimated Delivery Time
+                        </label>
+                        <input type="datetime-local" name="estimated_delivery" class="form-control" 
+                               value="{{ order.estimated_delivery.strftime('%Y-%m-%dT%H:%M') if order.estimated_delivery else '' }}">
+                        <div class="form-help">Expected delivery/pickup time</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Driver Rating
+                        </label>
+                        <select name="driver_rating" class="form-control select">
+                            <option value="">Not rated</option>
+                            <option value="1" {% if order.driver_rating == 1 %}selected{% endif %}>1 Star</option>
+                            <option value="2" {% if order.driver_rating == 2 %}selected{% endif %}>2 Stars</option>
+                            <option value="3" {% if order.driver_rating == 3 %}selected{% endif %}>3 Stars</option>
+                            <option value="4" {% if order.driver_rating == 4 %}selected{% endif %}>4 Stars</option>
+                            <option value="5" {% if order.driver_rating == 5 %}selected{% endif %}>5 Stars</option>
+                        </select>
+                        <div class="form-help">Customer's rating for the driver</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="{{ url_for('admin.view_order', order_id=order.order_id) }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancel
+            </a>
+            
+            <button type="button" class="btn btn-danger" id="deleteOrderBtn">
+                <i class="fas fa-trash"></i>
+                Delete Order
+            </button>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Delete Order
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+                
+                <p>Are you sure you want to delete order <strong>#{{ order.order_id }}</strong>?</p>
+                <p style="color: var(--railway-text-secondary); font-size: 14px;">
+                    This will permanently remove the order and all associated data from the system.
+                </p>
+                
+                <div class="form-group mt-3">
+                    <label class="form-label">Type "DELETE" to confirm:</label>
+                    <input type="text" class="form-control" id="confirmDeleteInput" placeholder="Type DELETE here">
+                </div>
+                
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="confirmCheckbox">
+                    <label class="form-check-label" for="confirmCheckbox">
+                        I understand this action is permanent and cannot be undone
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                    <i class="fas fa-trash me-2"></i>
+                    Delete Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-calculate total amount
+    function calculateTotal() {
+        const subtotal = parseFloat(document.querySelector('input[name="subtotal"]').value) || 0;
+        const tax = parseFloat(document.querySelector('input[name="tax"]').value) || 0;
+        const deliveryFee = parseFloat(document.querySelector('input[name="delivery_fee"]').value) || 0;
+        const discount = parseFloat(document.querySelector('input[name="discount"]').value) || 0;
+        
+        const total = subtotal + tax + deliveryFee - discount;
+        document.querySelector('.total-amount').textContent = '$' + total.toFixed(2);
+    }
+
+    // Add event listeners to pricing inputs
+    document.querySelectorAll('input[name="subtotal"], input[name="tax"], input[name="delivery_fee"], input[name="discount"]').forEach(input => {
+        input.addEventListener('input', calculateTotal);
+        input.addEventListener('change', calculateTotal);
+    });
+
+    // Delete order modal
+    const deleteOrderModal = new bootstrap.Modal(document.getElementById('deleteOrderModal'));
+    const confirmDeleteInput = document.getElementById('confirmDeleteInput');
+    const confirmCheckbox = document.getElementById('confirmCheckbox');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+    document.getElementById('deleteOrderBtn').addEventListener('click', function() {
+        confirmDeleteInput.value = '';
+        confirmCheckbox.checked = false;
+        confirmDeleteBtn.disabled = true;
+        deleteOrderModal.show();
+    });
+
+    function updateDeleteButtonState() {
+        const isConfirmed = confirmDeleteInput.value === 'DELETE' && confirmCheckbox.checked;
+        confirmDeleteBtn.disabled = !isConfirmed;
+    }
+
+    confirmDeleteInput.addEventListener('input', updateDeleteButtonState);
+    confirmCheckbox.addEventListener('change', updateDeleteButtonState);
+
+    confirmDeleteBtn.addEventListener('click', function() {
+        // Show loading state
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+        this.disabled = true;
+        
+        fetch(`/admin/orders/{{ order.order_id }}/delete`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Order deleted successfully', 'success');
+                deleteOrderModal.hide();
+                setTimeout(() => {
+                    window.location.href = "{{ url_for('admin.manage_orders') }}";
+                }, 1500);
+            } else {
+                showToast('Error: ' + data.message, 'error');
+                this.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Order';
+                this.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred', 'error');
+            this.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Order';
+            this.disabled = false;
+        });
+    });
+
+    // Form validation
+    document.getElementById('editOrderForm').addEventListener('submit', function(e) {
+        let isValid = true;
+        const requiredFields = this.querySelectorAll('[required]');
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.style.borderColor = 'var(--railway-danger)';
+            } else {
+                field.style.borderColor = '';
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            showToast('Please fill in all required fields', 'error');
+        }
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `
+            <div class="toast-message">${message}</div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        if (!document.querySelector('.toast-styles')) {
+            const style = document.createElement('style');
+            style.textContent = `
+                .toast-notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--railway-card);
+                    border: 1px solid var(--railway-border);
+                    border-radius: 6px;
+                    padding: 16px 20px;
+                    box-shadow: var(--railway-shadow-lg);
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    min-width: 300px;
+                    z-index: 9999;
+                    border-left: 4px solid var(--railway-success);
+                    color: var(--railway-text);
+                    animation: slideIn 0.3s ease-out;
+                }
+                .toast-notification.error {
+                    border-left-color: var(--railway-danger);
+                }
+                .toast-message {
+                    flex: 1;
+                }
+                .toast-close {
+                    background: none;
+                    border: none;
+                    font-size: 20px;
+                    cursor: pointer;
+                    color: var(--railway-text-secondary);
+                    margin-left: 10px;
+                    opacity: 0.7;
+                }
+                .toast-close:hover {
+                    opacity: 1;
+                }
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+        
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.remove();
+        });
+    }
+
+    // Auto-save draft (every 30 seconds)
+    let saveTimer;
+    const form = document.getElementById('editOrderForm');
+    
+    function saveDraft() {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+        
+        // Store in localStorage
+        localStorage.setItem('order_draft_{{ order.order_id }}', JSON.stringify(data));
+        console.log('Draft saved');
+    }
+    
+    // Start auto-save
+    form.addEventListener('input', () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveDraft, 30000);
+    });
+    
+    // Load draft on page load
+    window.addEventListener('load', () => {
+        const draft = localStorage.getItem('order_draft_{{ order.order_id }}');
+        if (draft) {
+            if (confirm('You have an unsaved draft. Would you like to restore it?')) {
+                const data = JSON.parse(draft);
+                Object.keys(data).forEach(key => {
+                    const element = form.querySelector(`[name="${key}"]`);
+                    if (element) {
+                        element.value = data[key];
+                    }
+                });
+                calculateTotal();
+                showToast('Draft restored', 'info');
+            }
+            localStorage.removeItem('order_draft_{{ order.order_id }}');
+        }
+    });
+    
+    // Clear draft on successful save
+    form.addEventListener('submit', () => {
+        localStorage.removeItem('order_draft_{{ order.order_id }}');
+    });
+</script>
+{% endblock %}
+[file content end]

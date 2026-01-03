@@ -1,0 +1,1402 @@
+[file name]: manage_orders.html
+[file content begin]
+{% extends "base.html" %}
+
+{% block title %}Manage Orders - Mega Pizza Admin{% endblock %}
+
+{% block styles %}
+<style>
+    /* Railway-Inspired Design */
+    :root {
+        --railway-bg: #000000;
+        --railway-card: #0a0a0a;
+        --railway-border: #1a1a1a;
+        --railway-text: #ffffff;
+        --railway-text-secondary: #a0a0a0;
+        --railway-primary: #667eea;
+        --railway-primary-dark: #5a67d8;
+        --railway-success: #10b981;
+        --railway-danger: #ef4444;
+        --railway-warning: #f59e0b;
+        --railway-info: #3b82f6;
+        --railway-purple: #8b5cf6;
+        --railway-pending: #f59e0b;
+        --railway-processing: #3b82f6;
+        --railway-delivering: #8b5cf6;
+        --railway-delivered: #10b981;
+        --railway-cancelled: #ef4444;
+        --railway-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --railway-shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Base Styles */
+    body {
+        background: var(--railway-bg);
+        color: var(--railway-text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        min-height: 100vh;
+    }
+
+    /* Container */
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 32px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--railway-border);
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+        color: var(--railway-text-secondary);
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: var(--railway-primary);
+        color: white;
+        border-color: var(--railway-primary);
+    }
+
+    .btn-primary:hover {
+        background: var(--railway-primary-dark);
+        border-color: var(--railway-primary-dark);
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--railway-text);
+        border-color: var(--railway-border);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--railway-text-secondary);
+        transform: translateY(-2px);
+    }
+
+    .btn-success {
+        background: var(--railway-success);
+        color: white;
+        border-color: var(--railway-success);
+    }
+
+    .btn-success:hover {
+        background: #0da271;
+        border-color: #0da271;
+        transform: translateY(-2px);
+    }
+
+    /* Filter and Search */
+    .filter-container {
+        background: var(--railway-card);
+        border: 1px solid var(--railway-border);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: var(--railway-shadow);
+    }
+
+    .filter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .filter-header h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin: 0;
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--railway-text);
+        font-size: 14px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--railway-border);
+        border-radius: 6px;
+        font-size: 14px;
+        color: var(--railway-text);
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--railway-primary);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-filter {
+        padding: 10px 24px;
+        background: var(--railway-primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        align-self: flex-end;
+    }
+
+    .btn-filter:hover {
+        background: var(--railway-primary-dark);
+    }
+
+    .btn-clear {
+        padding: 10px 24px;
+        background: transparent;
+        color: var(--railway-text);
+        border: 1px solid var(--railway-border);
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        align-self: flex-end;
+    }
+
+    .btn-clear:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--railway-text-secondary);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: var(--railway-card);
+        border: 1px solid var(--railway-border);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: var(--railway-shadow);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--railway-shadow-lg);
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        font-size: 18px;
+        color: white;
+    }
+
+    .stat-icon.total { background: var(--railway-primary); }
+    .stat-icon.pending { background: var(--railway-warning); }
+    .stat-icon.processing { background: var(--railway-info); }
+    .stat-icon.delivering { background: var(--railway-purple); }
+    .stat-icon.delivered { background: var(--railway-success); }
+    .stat-icon.cancelled { background: var(--railway-danger); }
+    .stat-icon.revenue { background: #10b981; }
+
+    .stat-number {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        color: var(--railway-text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Orders Table Container */
+    .orders-table-container {
+        background: var(--railway-card);
+        border: 1px solid var(--railway-border);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: var(--railway-shadow);
+        margin-bottom: 40px;
+    }
+
+    .table-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--railway-border);
+        background: rgba(255, 255, 255, 0.03);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin: 0;
+    }
+
+    .table-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .table-content {
+        overflow-x: auto;
+    }
+
+    /* Orders Table */
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1000px;
+    }
+
+    .orders-table th {
+        padding: 16px 24px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--railway-text-secondary);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--railway-border);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .orders-table td {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--railway-border);
+        vertical-align: middle;
+    }
+
+    .orders-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .orders-table tr:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Order Info */
+    .order-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .order-id {
+        font-weight: 600;
+        color: var(--railway-text);
+        font-size: 14px;
+    }
+
+    .order-time {
+        color: var(--railway-text-secondary);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Customer Info */
+    .customer-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .customer-name {
+        font-weight: 600;
+        color: var(--railway-text);
+        font-size: 14px;
+    }
+
+    .customer-phone {
+        color: var(--railway-text-secondary);
+        font-size: 12px;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+
+    .status-pending { 
+        background: rgba(245, 158, 11, 0.15); 
+        color: #f59e0b; 
+    }
+    .status-confirmed { 
+        background: rgba(59, 130, 246, 0.15); 
+        color: #3b82f6; 
+    }
+    .status-preparing { 
+        background: rgba(139, 92, 246, 0.15); 
+        color: #8b5cf6; 
+    }
+    .status-ready { 
+        background: rgba(16, 185, 129, 0.15); 
+        color: #10b981; 
+    }
+    .status-out_for_delivery { 
+        background: rgba(139, 92, 246, 0.25); 
+        color: #8b5cf6; 
+    }
+    .status-delivered { 
+        background: rgba(16, 185, 129, 0.25); 
+        color: #10b981; 
+    }
+    .status-cancelled { 
+        background: rgba(239, 68, 68, 0.15); 
+        color: #ef4444; 
+    }
+
+    /* Payment Status */
+    .payment-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .payment-paid {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+    }
+
+    .payment-pending {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+    }
+
+    .payment-failed {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+    }
+
+    /* Action Buttons */
+    .action-buttons-small {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-sm {
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 4px;
+        min-width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-view {
+        background: transparent;
+        color: var(--railway-purple);
+        border: 1px solid var(--railway-purple);
+    }
+
+    .btn-view:hover {
+        background: var(--railway-purple);
+        color: white;
+    }
+
+    .btn-edit {
+        background: transparent;
+        color: var(--railway-info);
+        border: 1px solid var(--railway-info);
+    }
+
+    .btn-edit:hover {
+        background: var(--railway-info);
+        color: white;
+    }
+
+    .btn-process {
+        background: transparent;
+        color: var(--railway-success);
+        border: 1px solid var(--railway-success);
+    }
+
+    .btn-process:hover {
+        background: var(--railway-success);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: transparent;
+        color: var(--railway-danger);
+        border: 1px solid var(--railway-danger);
+    }
+
+    .btn-cancel:hover {
+        background: var(--railway-danger);
+        color: white;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        color: var(--railway-border);
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin-bottom: 8px;
+    }
+
+    .empty-description {
+        color: var(--railway-text-secondary);
+        margin-bottom: 24px;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        padding: 20px;
+        border-top: 1px solid var(--railway-border);
+    }
+
+    .page-link {
+        padding: 8px 12px;
+        background: transparent;
+        border: 1px solid var(--railway-border);
+        color: var(--railway-text);
+        text-decoration: none;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .page-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--railway-text-secondary);
+    }
+
+    .page-link.active {
+        background: var(--railway-primary);
+        border-color: var(--railway-primary);
+        color: white;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            padding: 16px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+        
+        .table-header {
+            flex-direction: column;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        
+        .table-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+        
+        .action-buttons-small {
+            flex-wrap: wrap;
+        }
+        
+        .orders-table th,
+        .orders-table td {
+            padding: 12px 16px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .page-title {
+            font-size: 24px;
+        }
+        
+        .pagination {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">Order Management</h1>
+        <p class="page-subtitle">Manage and track all customer orders in real-time</p>
+        
+        <div class="action-buttons">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+            <button class="btn btn-success" id="refreshOrders">
+                <i class="fas fa-sync-alt"></i>
+                Refresh Orders
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-container">
+        <div class="filter-header">
+            <h3>Filter Orders</h3>
+        </div>
+        
+        <form id="filterForm" class="filter-form" method="GET" action="{{ url_for('admin.manage_orders') }}">
+            <div class="form-group">
+                <label class="form-label">Order Status</label>
+                <select name="status" class="form-control">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="confirmed" {% if request.args.get('status') == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="preparing" {% if request.args.get('status') == 'preparing' %}selected{% endif %}>Preparing</option>
+                    <option value="ready" {% if request.args.get('status') == 'ready' %}selected{% endif %}>Ready</option>
+                    <option value="out_for_delivery" {% if request.args.get('status') == 'out_for_delivery' %}selected{% endif %}>Out for Delivery</option>
+                    <option value="delivered" {% if request.args.get('status') == 'delivered' %}selected{% endif %}>Delivered</option>
+                    <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Payment Status</label>
+                <select name="payment_status" class="form-control">
+                    <option value="">All Payment Statuses</option>
+                    <option value="paid" {% if request.args.get('payment_status') == 'paid' %}selected{% endif %}>Paid</option>
+                    <option value="pending" {% if request.args.get('payment_status') == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="failed" {% if request.args.get('payment_status') == 'failed' %}selected{% endif %}>Failed</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Date Range</label>
+                <input type="date" name="start_date" class="form-control" 
+                       value="{{ request.args.get('start_date') }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">To</label>
+                <input type="date" name="end_date" class="form-control" 
+                       value="{{ request.args.get('end_date') }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Search Order ID/Customer</label>
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Order ID, Customer name..." 
+                       value="{{ request.args.get('search') }}">
+            </div>
+            
+            <button type="submit" class="btn-filter">
+                <i class="fas fa-filter"></i>
+                Apply Filters
+            </button>
+            
+            {% if request.args %}
+            <a href="{{ url_for('admin.manage_orders') }}" class="btn-clear">
+                <i class="fas fa-times"></i>
+                Clear Filters
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="stat-number">{{ stats.total_orders if stats else 0 }}</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon pending">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-number">{{ stats.pending_orders if stats else 0 }}</div>
+            <div class="stat-label">Pending</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon processing">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <div class="stat-number">{{ stats.processing_orders if stats else 0 }}</div>
+            <div class="stat-label">Processing</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon delivering">
+                <i class="fas fa-truck"></i>
+            </div>
+            <div class="stat-number">{{ stats.delivering_orders if stats else 0 }}</div>
+            <div class="stat-label">Delivering</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon delivered">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-number">{{ stats.delivered_orders if stats else 0 }}</div>
+            <div class="stat-label">Delivered</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon cancelled">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-number">{{ stats.cancelled_orders if stats else 0 }}</div>
+            <div class="stat-label">Cancelled</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon revenue">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-number">${{ "%.0f"|format(stats.total_revenue if stats else 0) }}</div>
+            <div class="stat-label">Total Revenue</div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="orders-table-container">
+        <div class="table-header">
+            <h3>Order List</h3>
+            <div class="table-actions">
+                <span class="text-secondary" style="font-size: 14px;">
+                    Showing {{ orders|length }} of {{ stats.total_orders if stats else 0 }} orders
+                </span>
+            </div>
+        </div>
+        
+        <div class="table-content">
+            {% if orders %}
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Restaurant</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>
+                            <div class="order-info">
+                                <div class="order-id">#{{ order.order_id }}</div>
+                                <div class="order-time">
+                                    <i class="far fa-clock"></i>
+                                    {% if order.estimated_delivery %}
+                                        ETA: {{ order.estimated_delivery.strftime('%H:%M') }}
+                                    {% else %}
+                                        No ETA
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="customer-info">
+                                <div class="customer-name">
+                                    {% if order.customer %}
+                                        {{ order.customer.name }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </div>
+                                <div class="customer-phone">
+                                    {% if order.customer and order.customer.phone_number %}
+                                        {{ order.customer.phone_number }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if order.restaurant %}
+                                <span style="font-weight: 600;">{{ order.restaurant.name }}</span>
+                            {% else %}
+                                <span class="text-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span style="font-weight: 600;">{{ order.order_items|length }} items</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: 600; color: var(--railway-success);">
+                                ${{ "%.2f"|format(order.total_amount) }}
+                            </span>
+                        </td>
+                        <td>
+                            {% set status_class = 'status-' + order.order_status %}
+                            <span class="status-badge {{ status_class }}">
+                                <i class="fas fa-circle" style="font-size: 8px;"></i>
+                                {{ order.order_status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% set payment_class = 'payment-' + order.payment_status %}
+                            <span class="payment-status {{ payment_class }}">
+                                <i class="fas fa-circle" style="font-size: 8px;"></i>
+                                {{ order.payment_status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="font-size: 13px;">
+                                {{ order.created_at.strftime('%b %d, %H:%M') }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons-small">
+                                <a href="{{ url_for('admin.view_order', order_id=order.order_id) }}" 
+                                   class="btn-sm btn-view" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('admin.edit_order', order_id=order.order_id) }}" 
+                                   class="btn-sm btn-edit" title="Edit Order">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if order.order_status not in ['delivered', 'cancelled'] %}
+                                    <button class="btn-sm btn-process update-status-btn" 
+                                            data-order-id="{{ order.order_id }}"
+                                            data-current-status="{{ order.order_status }}"
+                                            title="Update Status">
+                                        <i class="fas fa-forward"></i>
+                                    </button>
+                                {% endif %}
+                                {% if order.order_status not in ['delivered', 'cancelled'] %}
+                                    <button class="btn-sm btn-cancel cancel-order-btn" 
+                                            data-order-id="{{ order.order_id }}"
+                                            data-customer-name="{{ order.customer.name if order.customer else 'Customer' }}"
+                                            title="Cancel Order">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h3 class="empty-title">No Orders Found</h3>
+                <p class="empty-description">
+                    {% if request.args %}
+                        No orders match your current filters
+                    {% else %}
+                        No orders have been placed yet
+                    {% endif %}
+                </p>
+                {% if request.args %}
+                <a href="{{ url_for('admin.manage_orders') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i>
+                    Clear Filters
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        {% if orders and stats.total_orders > orders|length %}
+        <!-- Pagination -->
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="{{ url_for('admin.manage_orders', page=page-1, **request.args) }}" class="page-link">
+                <i class="fas fa-chevron-left"></i> Prev
+            </a>
+            {% endif %}
+            
+            {% for p in range(1, total_pages + 1) %}
+                {% if p == page %}
+                <span class="page-link active">{{ p }}</span>
+                {% else %}
+                <a href="{{ url_for('admin.manage_orders', page=p, **request.args) }}" class="page-link">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page < total_pages %}
+            <a href="{{ url_for('admin.manage_orders', page=page+1, **request.args) }}" class="page-link">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-forward me-2"></i>
+                    Update Order Status
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="statusProgress" style="margin-bottom: 20px;">
+                    <!-- Status progress will be dynamically generated -->
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Select New Status</label>
+                    <select id="newStatusSelect" class="form-control">
+                        <option value="">Select status...</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="ready">Ready</option>
+                        <option value="out_for_delivery">Out for Delivery</option>
+                        <option value="delivered">Delivered</option>
+                    </select>
+                </div>
+                
+                <div class="form-group mt-3" id="driverAssignment" style="display: none;">
+                    <label class="form-label">Assign Driver</label>
+                    <select id="driverSelect" class="form-control">
+                        <option value="">Select driver...</option>
+                        {% for driver in available_drivers %}
+                            <option value="{{ driver.driver_id }}">
+                                {{ driver.user.username }} - {{ driver.vehicle_type|default('No vehicle') }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group mt-3">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea id="statusNotes" class="form-control" rows="2" 
+                              placeholder="Add notes about this status change..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmStatusUpdateBtn">
+                    <i class="fas fa-check me-2"></i>
+                    Update Status
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Order Modal -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Cancel Order
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+                
+                <p>Are you sure you want to cancel order <strong id="cancelOrderId"></strong> for <strong id="cancelCustomerName"></strong>?</p>
+                
+                <div class="form-group mt-3">
+                    <label class="form-label">Cancellation Reason</label>
+                    <select id="cancelReason" class="form-control">
+                        <option value="">Select reason...</option>
+                        <option value="customer_request">Customer Request</option>
+                        <option value="restaurant_closed">Restaurant Closed</option>
+                        <option value="out_of_stock">Items Out of Stock</option>
+                        <option value="delivery_issue">Delivery Issue</option>
+                        <option value="payment_failed">Payment Failed</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group mt-3">
+                    <label class="form-label">Additional Notes</label>
+                    <textarea id="cancelNotes" class="form-control" rows="2" 
+                              placeholder="Add cancellation details..."></textarea>
+                </div>
+                
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="refundCheckbox">
+                    <label class="form-check-label" for="refundCheckbox">
+                        Process refund to customer
+                    </label>
+                </div>
+                
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="notifyCustomerCheckbox" checked>
+                    <label class="form-check-label" for="notifyCustomerCheckbox">
+                        Notify customer via email/SMS
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmCancelBtn">
+                    <i class="fas fa-times me-2"></i>
+                    Cancel Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Refresh orders button
+    document.getElementById('refreshOrders').addEventListener('click', function() {
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+        this.disabled = true;
+        
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    });
+
+    // Status update modal
+    const updateStatusModal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
+    const confirmStatusUpdateBtn = document.getElementById('confirmStatusUpdateBtn');
+    const newStatusSelect = document.getElementById('newStatusSelect');
+    const driverSelect = document.getElementById('driverSelect');
+    const driverAssignment = document.getElementById('driverAssignment');
+    let currentOrderId = null;
+    let currentStatus = null;
+
+    // Status progression steps
+    const statusSteps = [
+        { value: 'pending', label: 'Pending', icon: 'fas fa-clock' },
+        { value: 'confirmed', label: 'Confirmed', icon: 'fas fa-check-circle' },
+        { value: 'preparing', label: 'Preparing', icon: 'fas fa-utensils' },
+        { value: 'ready', label: 'Ready', icon: 'fas fa-check' },
+        { value: 'out_for_delivery', label: 'Out for Delivery', icon: 'fas fa-truck' },
+        { value: 'delivered', label: 'Delivered', icon: 'fas fa-flag-checkered' },
+        { value: 'cancelled', label: 'Cancelled', icon: 'fas fa-times-circle' }
+    ];
+
+    document.querySelectorAll('.update-status-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            currentOrderId = this.dataset.orderId;
+            currentStatus = this.dataset.currentStatus;
+            
+            // Generate status progress visualization
+            const progressHtml = generateStatusProgress(currentStatus);
+            document.getElementById('statusProgress').innerHTML = progressHtml;
+            
+            // Populate status select with next possible statuses
+            newStatusSelect.innerHTML = '<option value="">Select status...</option>';
+            const currentIndex = statusSteps.findIndex(step => step.value === currentStatus);
+            
+            // Only show statuses that come after current status
+            statusSteps.slice(currentIndex + 1).forEach(step => {
+                if (step.value !== 'cancelled') {
+                    const option = document.createElement('option');
+                    option.value = step.value;
+                    option.textContent = step.label;
+                    newStatusSelect.appendChild(option);
+                }
+            });
+            
+            // Reset fields
+            driverAssignment.style.display = 'none';
+            document.getElementById('statusNotes').value = '';
+            
+            updateStatusModal.show();
+        });
+    });
+
+    function generateStatusProgress(currentStatus) {
+        let html = '<div class="status-progress-container" style="display: flex; justify-content: space-between; position: relative; margin: 20px 0;">';
+        
+        // Progress line
+        html += '<div style="position: absolute; top: 15px; left: 0; right: 0; height: 2px; background: var(--railway-border); z-index: 1;"></div>';
+        
+        const currentIndex = statusSteps.findIndex(step => step.value === currentStatus);
+        
+        statusSteps.forEach((step, index) => {
+            if (step.value === 'cancelled') return; // Skip cancelled in progress bar
+            
+            const isActive = index <= currentIndex;
+            const isCurrent = index === currentIndex;
+            
+            html += `
+                <div style="position: relative; z-index: 2; text-align: center; flex: 1;">
+                    <div style="width: 30px; height: 30px; border-radius: 50%; background: ${isActive ? 'var(--railway-primary)' : 'var(--railway-border)'}; 
+                         color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                        <i class="${step.icon}"></i>
+                    </div>
+                    <div style="font-size: 11px; color: ${isActive ? 'var(--railway-text)' : 'var(--railway-text-secondary)'};">
+                        ${step.label}
+                    </div>
+                    ${isCurrent ? '<div style="margin-top: 4px; font-size: 10px; color: var(--railway-primary);">Current</div>' : ''}
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        return html;
+    }
+
+    // Show driver assignment when status is "out_for_delivery"
+    newStatusSelect.addEventListener('change', function() {
+        if (this.value === 'out_for_delivery') {
+            driverAssignment.style.display = 'block';
+        } else {
+            driverAssignment.style.display = 'none';
+        }
+    });
+
+    confirmStatusUpdateBtn.addEventListener('click', function() {
+        const newStatus = newStatusSelect.value;
+        if (!newStatus) {
+            alert('Please select a status');
+            return;
+        }
+        
+        if (newStatus === 'out_for_delivery' && !driverSelect.value) {
+            alert('Please assign a driver for delivery');
+            return;
+        }
+        
+        // Show loading state
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+        this.disabled = true;
+        
+        const data = {
+            new_status: newStatus,
+            driver_id: newStatus === 'out_for_delivery' ? driverSelect.value : null,
+            notes: document.getElementById('statusNotes').value
+        };
+        
+        fetch(`/admin/orders/${currentOrderId}/update-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Order status updated successfully', 'success');
+                updateStatusModal.hide();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showToast('Error: ' + data.message, 'error');
+                this.innerHTML = '<i class="fas fa-check me-2"></i>Update Status';
+                this.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred', 'error');
+            this.innerHTML = '<i class="fas fa-check me-2"></i>Update Status';
+            this.disabled = false;
+        });
+    });
+
+    // Cancel order modal
+    const cancelOrderModal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+
+    document.querySelectorAll('.cancel-order-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            currentOrderId = this.dataset.orderId;
+            const customerName = this.dataset.customerName;
+            
+            document.getElementById('cancelOrderId').textContent = currentOrderId;
+            document.getElementById('cancelCustomerName').textContent = customerName;
+            
+            // Reset fields
+            document.getElementById('cancelReason').value = '';
+            document.getElementById('cancelNotes').value = '';
+            document.getElementById('refundCheckbox').checked = false;
+            document.getElementById('notifyCustomerCheckbox').checked = true;
+            
+            cancelOrderModal.show();
+        });
+    });
+
+    confirmCancelBtn.addEventListener('click', function() {
+        const reason = document.getElementById('cancelReason').value;
+        if (!reason) {
+            alert('Please select a cancellation reason');
+            return;
+        }
+        
+        // Show loading state
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Cancelling...';
+        this.disabled = true;
+        
+        const data = {
+            reason: reason,
+            notes: document.getElementById('cancelNotes').value,
+            process_refund: document.getElementById('refundCheckbox').checked,
+            notify_customer: document.getElementById('notifyCustomerCheckbox').checked
+        };
+        
+        fetch(`/admin/orders/${currentOrderId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Order cancelled successfully', 'success');
+                cancelOrderModal.hide();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showToast('Error: ' + data.message, 'error');
+                this.innerHTML = '<i class="fas fa-times me-2"></i>Cancel Order';
+                this.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred', 'error');
+            this.innerHTML = '<i class="fas fa-times me-2"></i>Cancel Order';
+            this.disabled = false;
+        });
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `
+            <div class="toast-message">${message}</div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        if (!document.querySelector('.toast-styles')) {
+            const style = document.createElement('style');
+            style.textContent = `
+                .toast-notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--railway-card);
+                    border: 1px solid var(--railway-border);
+                    border-radius: 6px;
+                    padding: 16px 20px;
+                    box-shadow: var(--railway-shadow-lg);
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    min-width: 300px;
+                    z-index: 9999;
+                    border-left: 4px solid var(--railway-success);
+                    color: var(--railway-text);
+                    animation: slideIn 0.3s ease-out;
+                }
+                .toast-notification.error {
+                    border-left-color: var(--railway-danger);
+                }
+                .toast-notification.warning {
+                    border-left-color: var(--railway-warning);
+                }
+                .toast-message {
+                    flex: 1;
+                }
+                .toast-close {
+                    background: none;
+                    border: none;
+                    font-size: 20px;
+                    cursor: pointer;
+                    color: var(--railway-text-secondary);
+                    margin-left: 10px;
+                    opacity: 0.7;
+                }
+                .toast-close:hover {
+                    opacity: 1;
+                }
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+        
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.remove();
+        });
+    }
+
+    // Auto-apply filters when dropdowns change
+    document.querySelectorAll('select[name="status"], select[name="payment_status"]').forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('filterForm').submit();
+        });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + F to focus on search
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            document.querySelector('input[name="search"]').focus();
+        }
+        
+        // Escape to clear filters
+        if (e.key === 'Escape' && document.querySelector('input[name="search"]').value) {
+            document.querySelector('input[name="search"]').value = '';
+            document.getElementById('filterForm').submit();
+        }
+    });
+
+    // Real-time updates (simulated)
+    function checkForUpdates() {
+        // This would be connected to WebSockets in a real application
+        console.log('Checking for order updates...');
+    }
+
+    // Check for updates every 30 seconds
+    setInterval(checkForUpdates, 30000);
+</script>
+{% endblock %}
+[file content end]
