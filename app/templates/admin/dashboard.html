@@ -338,25 +338,25 @@
             <a href="#" class="menu-item">
                 <div class="menu-icon"><i class="fas fa-users"></i></div>
                 <div class="menu-text">Users</div>
-                <div class="menu-badge">{{ total_users }}</div>
+                <div class="menu-badge">{{ stats.total_users if stats else 0 }}</div>
             </a>
             
             <a href="{{ url_for('admin.manage_drivers') }}" class="menu-item">
                 <div class="menu-icon"><i class="fas fa-truck"></i></div>
                 <div class="menu-text">Drivers</div>
-                <div class="menu-badge">{{ drivers }}</div>
+                <div class="menu-badge">{{ stats.drivers if stats else 0 }}</div>
             </a>
             
             <a href="#" class="menu-item">
                 <div class="menu-icon"><i class="fas fa-store"></i></div>
                 <div class="menu-text">Restaurants</div>
-                <div class="menu-badge">{{ restaurants_count }}</div>
+                <div class="menu-badge">{{ stats.restaurants_count if stats else 0 }}</div>
             </a>
             
             <a href="#" class="menu-item">
                 <div class="menu-icon"><i class="fas fa-shopping-cart"></i></div>
                 <div class="menu-text">Orders</div>
-                <div class="menu-badge">{{ orders_count }}</div>
+                <div class="menu-badge">{{ stats.total_orders if stats else 0 }}</div>
             </a>
             
             <div class="menu-section">CONTENT</div>
@@ -412,7 +412,7 @@
             <h1>Welcome, {{ current_user.username }}!</h1>
             <p class="lead">Administrator Dashboard - Manage everything from here</p>
             <div class="mt-3">
-                <span class="badge bg-light text-dark me-2"><i class="fas fa-clock me-1"></i> {{ current_time }}</span>
+                <span class="badge bg-light text-dark me-2"><i class="fas fa-clock me-1"></i> {{ current_time.strftime('%Y-%m-%d %H:%M') if current_time else 'N/A' }}</span>
                 <span class="badge bg-light text-dark"><i class="fas fa-database me-1"></i> PostgreSQL Connected</span>
             </div>
         </div>
@@ -422,7 +422,7 @@
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="stat-card" style="background: linear-gradient(135deg, #667eea, #764ba2);">
                     <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-number">{{ total_users }}</div>
+                    <div class="stat-number">{{ stats.total_users if stats else 0 }}</div>
                     <div class="stat-label">Total Users</div>
                 </div>
             </div>
@@ -430,7 +430,7 @@
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="stat-card" style="background: linear-gradient(135deg, #28a745, #20c997);">
                     <div class="stat-icon"><i class="fas fa-user-check"></i></div>
-                    <div class="stat-number">{{ active_users }}</div>
+                    <div class="stat-number">{{ stats.active_users if stats else 0 }}</div>
                     <div class="stat-label">Active Users</div>
                 </div>
             </div>
@@ -438,7 +438,7 @@
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8, #0dcaf0);">
                     <div class="stat-icon"><i class="fas fa-user-shield"></i></div>
-                    <div class="stat-number">{{ admins }}</div>
+                    <div class="stat-number">{{ stats.admins if stats else 0 }}</div>
                     <div class="stat-label">Administrators</div>
                 </div>
             </div>
@@ -446,7 +446,7 @@
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="stat-card" style="background: linear-gradient(135deg, #ffc107, #fd7e14);">
                     <div class="stat-icon"><i class="fas fa-truck"></i></div>
-                    <div class="stat-number">{{ drivers }}</div>
+                    <div class="stat-number">{{ stats.drivers if stats else 0 }}</div>
                     <div class="stat-label">Delivery Drivers</div>
                 </div>
             </div>
@@ -545,61 +545,67 @@
                         <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h5>
                     </div>
                     <div class="card-body p-0">
-                        <div class="activity-item">
-                            <div class="activity-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
-                                <i class="fas fa-user-plus"></i>
+                        <!-- You can add actual recent orders here -->
+                        {% if recent_orders %}
+                            {% for order in recent_orders %}
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <strong>New order placed</strong>
+                                    <p class="mb-0 text-muted">Order #{{ order.order_id }} for ${{ "%.2f"|format(order.total_amount) }}</p>
+                                </div>
+                                <div class="activity-time">{{ order.created_at.strftime('%H:%M') }}</div>
                             </div>
-                            <div class="activity-content">
-                                <strong>New user registered</strong>
-                                <p class="mb-0 text-muted">John Doe signed up as customer</p>
+                            {% endfor %}
+                        {% else %}
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: linear-gradient(135deg, #6c757d, #adb5bd);">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <strong>No recent activity</strong>
+                                    <p class="mb-0 text-muted">No orders found</p>
+                                </div>
                             </div>
-                            <div class="activity-time">5 min ago</div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon" style="background: linear-gradient(135deg, #28a745, #20c997);">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <div class="activity-content">
-                                <strong>New order placed</strong>
-                                <p class="mb-0 text-muted">Order #ORD-001 for $25.99</p>
-                            </div>
-                            <div class="activity-time">15 min ago</div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon" style="background: linear-gradient(135deg, #ff6b35, #ffa500);">
-                                <i class="fas fa-truck"></i>
-                            </div>
-                            <div class="activity-content">
-                                <strong>Driver assigned</strong>
-                                <p class="mb-0 text-muted">Mike assigned to order #ORD-001</p>
-                            </div>
-                            <div class="activity-time">30 min ago</div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon" style="background: linear-gradient(135deg, #17a2b8, #0dcaf0);">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="activity-content">
-                                <strong>Order delivered</strong>
-                                <p class="mb-0 text-muted">Order #ORD-000 delivered successfully</p>
-                            </div>
-                            <div class="activity-time">1 hour ago</div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon" style="background: linear-gradient(135deg, #6f42c1, #d63384);">
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <div class="activity-content">
-                                <strong>New review added</strong>
-                                <p class="mb-0 text-muted">Sarah rated 5 stars for Pepperoni Pizza</p>
-                            </div>
-                            <div class="activity-time">2 hours ago</div>
-                        </div>
+                        {% endif %}
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Stats -->
+        <div class="row">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stat-card" style="background: linear-gradient(135deg, #6f42c1, #d63384);">
+                    <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-number">{{ stats.total_orders if stats else 0 }}</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stat-card" style="background: linear-gradient(135deg, #dc3545, #e83e8c);">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-number">{{ stats.pending_orders if stats else 0 }}</div>
+                    <div class="stat-label">Pending Orders</div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stat-card" style="background: linear-gradient(135deg, #ff6b35, #ffa500);">
+                    <div class="stat-icon"><i class="fas fa-truck-moving"></i></div>
+                    <div class="stat-number">{{ stats.active_orders if stats else 0 }}</div>
+                    <div class="stat-label">Active Orders</div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stat-card" style="background: linear-gradient(135deg, #20c997, #28a745);">
+                    <div class="stat-icon"><i class="fas fa-truck-loading"></i></div>
+                    <div class="stat-number">{{ stats.active_drivers if stats else 0 }}</div>
+                    <div class="stat-label">Available Drivers</div>
                 </div>
             </div>
         </div>
@@ -618,30 +624,33 @@
                                     <i class="fas fa-database fa-2x text-success mb-2"></i>
                                     <h6>Database</h6>
                                     <span class="badge bg-success">Online</span>
+                                    <p class="small mt-2 mb-0">{{ stats.users_count if stats else 0 }} users</p>
                                 </div>
                             </div>
                             
                             <div class="col-md-3 text-center mb-3">
                                 <div class="p-3 rounded" style="background: rgba(40, 167, 69, 0.1);">
-                                    <i class="fas fa-server fa-2x text-success mb-2"></i>
-                                    <h6>API Service</h6>
-                                    <span class="badge bg-success">Running</span>
+                                    <i class="fas fa-store fa-2x text-success mb-2"></i>
+                                    <h6>Restaurants</h6>
+                                    <span class="badge bg-success">{{ stats.restaurants_count if stats else 0 }} active</span>
                                 </div>
                             </div>
                             
                             <div class="col-md-3 text-center mb-3">
-                                <div class="p-3 rounded" style="background: rgba(255, 193, 7, 0.1);">
-                                    <i class="fas fa-envelope fa-2x text-warning mb-2"></i>
-                                    <h6>Email Service</h6>
-                                    <span class="badge bg-warning">Setup Required</span>
+                                <div class="p-3 rounded" style="background: rgba(255, 107, 53, 0.1);">
+                                    <i class="fas fa-truck fa-2x text-primary mb-2"></i>
+                                    <h6>Drivers</h6>
+                                    <span class="badge bg-primary">{{ stats.drivers if stats else 0 }} total</span>
+                                    <p class="small mt-2 mb-0">{{ stats.active_drivers if stats else 0 }} available</p>
                                 </div>
                             </div>
                             
                             <div class="col-md-3 text-center mb-3">
                                 <div class="p-3 rounded" style="background: rgba(40, 167, 69, 0.1);">
-                                    <i class="fas fa-shield-alt fa-2x text-success mb-2"></i>
-                                    <h6>Security</h6>
-                                    <span class="badge bg-success">Protected</span>
+                                    <i class="fas fa-shopping-cart fa-2x text-success mb-2"></i>
+                                    <h6>Orders Today</h6>
+                                    <span class="badge bg-success">{{ stats.today_orders if stats else 0 }}</span>
+                                    <p class="small mt-2 mb-0">{{ stats.pending_orders if stats else 0 }} pending</p>
                                 </div>
                             </div>
                         </div>
@@ -673,7 +682,7 @@
         // Auto-update time every minute
         function updateTime() {
             const now = new Date();
-            const timeElement = document.querySelector('.badge.bg-light.text-dark i.fa-clock').parentElement;
+            const timeElement = document.querySelector('.badge.bg-light.text-dark i.fa-clock')?.parentElement;
             if (timeElement) {
                 timeElement.innerHTML = `<i class="fas fa-clock me-1"></i> ${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
             }

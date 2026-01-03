@@ -4,374 +4,1097 @@
 
 {% block styles %}
 <style>
-    .driver-card {
-        border-radius: 10px;
-        border: 1px solid #e1e5eb;
-        transition: all 0.3s ease;
+    /* Railway-Inspired Design */
+    :root {
+        --railway-bg: #000000;
+        --railway-card: #0a0a0a;
+        --railway-border: #1a1a1a;
+        --railway-text: #ffffff;
+        --railway-text-secondary: #a0a0a0;
+        --railway-primary: #667eea;
+        --railway-primary-dark: #5a67d8;
+        --railway-success: #10b981;
+        --railway-danger: #ef4444;
+        --railway-warning: #f59e0b;
+        --railway-info: #3b82f6;
+        --railway-purple: #8b5cf6;
+        --railway-view: #8b5cf6; /* Purple for View button */
+        --railway-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --railway-shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Base Styles */
+    body {
+        background: var(--railway-bg);
+        color: var(--railway-text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        min-height: 100vh;
+    }
+
+    /* Container */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 32px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--railway-border);
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+        color: var(--railway-text-secondary);
+        font-size: 16px;
         margin-bottom: 20px;
     }
-    
-    .driver-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        border-color: var(--primary-color);
-    }
-    
-    .driver-header {
-        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-        padding: 20px;
-        border-bottom: 1px solid #e1e5eb;
-        border-radius: 10px 10px 0 0;
-    }
-    
-    .driver-avatar {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, var(--primary-color), #ffa500);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 2rem;
-        margin: 0 auto;
-    }
-    
-    .rating-stars {
-        color: #ffc107;
-    }
-    
-    .status-badge {
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-weight: 600;
-    }
-    
-    .stats-card {
-        background: white;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 15px;
-        border: 1px solid #e1e5eb;
-    }
-    
+
+    /* Action Buttons */
     .action-buttons {
         display: flex;
-        gap: 10px;
-        margin-top: 15px;
+        gap: 12px;
+        margin-bottom: 24px;
     }
-    
-    /* Header Navigation */
-    .page-header-nav {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 20px;
-        padding: 15px;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-    
-    .back-btn {
-        display: flex;
+
+    .btn {
+        display: inline-flex;
         align-items: center;
         gap: 8px;
-        color: var(--primary-color);
-        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 6px;
         font-weight: 500;
-        padding: 8px 15px;
-        border-radius: 8px;
-        border: 1px solid #e1e5eb;
-        transition: all 0.3s ease;
+        font-size: 14px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s ease;
     }
-    
-    .back-btn:hover {
-        background: rgba(255, 107, 53, 0.1);
-        border-color: var(--primary-color);
-        transform: translateX(-3px);
-    }
-    
-    /* Delete Modal Styles */
-    .delete-confirm-modal .modal-header {
-        background: linear-gradient(135deg, #ff6b35, #ffa500);
+
+    .btn-primary {
+        background: var(--railway-primary);
         color: white;
+        border-color: var(--railway-primary);
     }
-    
-    .delete-driver-info {
-        background: #f8f9fa;
+
+    .btn-primary:hover {
+        background: var(--railway-primary-dark);
+        border-color: var(--railway-primary-dark);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--railway-text);
+        border-color: var(--railway-border);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--railway-text-secondary);
+    }
+
+    /* Search Bar Container */
+    .search-container {
+        background: var(--railway-card);
+        border: 1px solid var(--railway-border);
         border-radius: 8px;
-        padding: 15px;
-        margin: 15px 0;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: var(--railway-shadow);
     }
-    
-    .driver-summary {
+
+    .search-header {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 15px;
+        margin-bottom: 16px;
     }
-    
-    .driver-summary-avatar {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, var(--primary-color), #ffa500);
-        border-radius: 50%;
+
+    .search-header h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin: 0;
+    }
+
+    .search-results {
+        font-size: 14px;
+        color: var(--railway-text-secondary);
+    }
+
+    .search-form {
+        display: flex;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .search-input-group {
+        flex: 1;
+        display: flex;
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 44px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--railway-border);
+        border-radius: 6px;
+        font-size: 14px;
+        color: var(--railway-text);
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--railway-primary);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--railway-text-secondary);
+        font-size: 16px;
+    }
+
+    .btn-search {
+        padding: 12px 24px;
+        background: var(--railway-primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .btn-search:hover {
+        background: var(--railway-primary-dark);
+    }
+
+    .btn-clear {
+        padding: 12px 24px;
+        background: transparent;
+        color: var(--railway-text);
+        border: 1px solid var(--railway-border);
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .btn-clear:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--railway-text-secondary);
+    }
+
+    /* Smaller Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Reduced min width */
+        gap: 16px; /* Reduced gap */
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: var(--railway-card);
+        border: 1px solid var(--railway-border);
+        border-radius: 8px;
+        padding: 20px; /* Reduced padding */
+        box-shadow: var(--railway-shadow);
+        transition: box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+        box-shadow: var(--railway-shadow-lg);
+    }
+
+    .stat-icon {
+        width: 40px; /* Smaller icon */
+        height: 40px; /* Smaller icon */
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-bottom: 12px; /* Reduced margin */
+        font-size: 18px; /* Smaller font */
         color: white;
-        font-size: 1.5rem;
+    }
+
+    .stat-icon.total { background: var(--railway-purple); }
+    .stat-icon.available { background: var(--railway-success); }
+    .stat-icon.onshift { background: var(--railway-info); }
+    .stat-icon.rating { background: var(--railway-warning); }
+
+    .stat-number {
+        font-size: 24px; /* Smaller font */
+        font-weight: 600;
+        color: var(--railway-text);
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        color: var(--railway-text-secondary);
+        font-size: 13px; /* Smaller font */
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Drivers Table Container */
+    .drivers-table-container {
+        background: var(--railway-card);
+        border: 1px solid var(--railway-border);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: var(--railway-shadow);
+        margin-bottom: 40px;
+    }
+
+    .table-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--railway-border);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .table-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin: 0;
+    }
+
+    .table-content {
+        overflow-x: auto;
+    }
+
+    /* Drivers Table - Updated for 6 columns (hiding Vehicle) */
+    .drivers-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 700px; /* Reduced from 800px since we removed Vehicle column */
+    }
+
+    .drivers-table th {
+        padding: 16px 24px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--railway-text-secondary);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--railway-border);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .drivers-table td {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--railway-border);
+        vertical-align: middle;
+    }
+
+    .drivers-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .drivers-table tr:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Driver Info */
+    .driver-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    /* Vehicle-based avatar colors and icons */
+    .driver-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    /* Car - Blue */
+    .driver-avatar.car { background: #3b82f6; }
+    .driver-avatar.sedan { background: #3b82f6; }
+    .driver-avatar.suv { background: #3b82f6; }
+    .driver-avatar.van { background: #3b82f6; }
+    .driver-avatar.truck { background: #3b82f6; }
+    
+    /* Motorcycle - Purple */
+    .driver-avatar.motorcycle { background: #8b5cf6; }
+    .driver-avatar.scooter { background: #8b5cf6; }
+    .driver-avatar.bike { background: #8b5cf6; }
+    
+    /* Bicycle - Green */
+    .driver-avatar.bicycle { background: #10b981; }
+    
+    /* Electric - Orange */
+    .driver-avatar.electric { background: #f59e0b; }
+    .driver-avatar.electric-car { background: #f59e0b; }
+    .driver-avatar.electric-scooter { background: #f59e0b; }
+    
+    /* Default - Railway Purple */
+    .driver-avatar.default { background: var(--railway-purple); }
+
+    .driver-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .driver-name {
+        font-weight: 600;
+        color: var(--railway-text);
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .driver-email {
+        color: var(--railway-text-secondary);
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 8px; /* Added margin for star rating */
+    }
+
+    /* Horizontal Star Rating - Now under email */
+    .driver-rating-horizontal {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 4px;
+    }
+
+    .rating-stars-horizontal {
+        color: #f59e0b;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 1px;
+    }
+
+    .rating-value-horizontal {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--railway-text-secondary);
+        margin-left: 4px;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .status-active { 
+        background: rgba(16, 185, 129, 0.15); 
+        color: #10b981; 
+    }
+    .status-inactive { 
+        background: rgba(239, 68, 68, 0.15); 
+        color: #ef4444; 
+    }
+    .status-available { 
+        background: rgba(59, 130, 246, 0.15); 
+        color: #3b82f6; 
+    }
+    .status-busy { 
+        background: rgba(245, 158, 11, 0.15); 
+        color: #f59e0b; 
+    }
+
+    /* Action Buttons in Table - Updated for 4 buttons */
+    .table-actions {
+        display: flex;
+        gap: 6px; /* Reduced gap to fit 4 buttons */
+    }
+
+    .btn-sm {
+        padding: 6px 10px; /* Reduced padding */
+        font-size: 12px; /* Smaller font */
+        border-radius: 4px;
+        min-width: 28px; /* Smaller min-width */
+        height: 28px; /* Smaller height */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+
+    .btn-view {
+        background: transparent;
+        color: var(--railway-view);
+        border: 1px solid var(--railway-view);
+    }
+
+    .btn-view:hover {
+        background: var(--railway-view);
+        color: white;
+    }
+
+    .btn-edit {
+        background: transparent;
+        color: var(--railway-info);
+        border: 1px solid var(--railway-info);
+    }
+
+    .btn-edit:hover {
+        background: var(--railway-info);
+        color: white;
+    }
+
+    .btn-toggle {
+        background: transparent;
+        color: var(--railway-success);
+        border: 1px solid var(--railway-success);
+    }
+
+    .btn-toggle:hover {
+        background: var(--railway-success);
+        color: white;
+    }
+
+    .btn-delete {
+        background: transparent;
+        color: var(--railway-danger);
+        border: 1px solid var(--railway-danger);
+    }
+
+    .btn-delete:hover {
+        background: var(--railway-danger);
+        color: white;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        color: var(--railway-border);
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin-bottom: 8px;
+    }
+
+    .empty-description {
+        color: var(--railway-text-secondary);
+        margin-bottom: 24px;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Modal Styling */
+    .modal-content {
+        background: var(--railway-card);
+        border: 1px solid var(--railway-border);
+        border-radius: 8px;
+        color: var(--railway-text);
+    }
+
+    .modal-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--railway-border);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--railway-text);
+        margin: 0;
+    }
+
+    .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid var(--railway-border);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Form Controls */
+    .form-label {
+        font-weight: 600;
+        color: var(--railway-text);
+        margin-bottom: 8px;
+        display: block;
+        font-size: 14px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--railway-border);
+        border-radius: 6px;
+        font-size: 14px;
+        color: var(--railway-text);
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--railway-primary);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Alert */
+    .alert {
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        border: 1px solid transparent;
+    }
+
+    .alert-warning {
+        background: rgba(245, 158, 11, 0.15);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #f59e0b;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            padding: 16px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .search-form {
+            flex-direction: column;
+        }
+        
+        .search-input-group,
+        .btn-search,
+        .btn-clear {
+            width: 100%;
+        }
+        
+        .table-actions {
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .btn-sm {
+            width: 100%;
+            justify-content: center;
+            padding: 6px 8px;
+        }
+        
+        .drivers-table th,
+        .drivers-table td {
+            padding: 12px 16px;
+        }
+        
+        .driver-rating-horizontal {
+            justify-content: flex-start;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .page-title {
+            font-size: 24px;
+        }
+        
+        .driver-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .driver-avatar {
+            align-self: flex-start;
+        }
+        
+        .table-actions {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        
+        .btn-sm {
+            min-width: 26px;
+            height: 26px;
+            font-size: 11px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <!-- Header Navigation -->
-    <div class="page-header-nav">
-        <a href="{{ url_for('admin.dashboard') }}" class="back-btn">
-            <i class="fas fa-arrow-left"></i>
-            Back to Dashboard
-        </a>
-        <div style="flex: 1"></div>
-        <a href="{{ url_for('admin.add_driver') }}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Add New Driver
-        </a>
-    </div>
-
+<div class="container">
     <!-- Page Header -->
-    <div class="row mb-4">
-        <div class="col">
-            <h2><i class="fas fa-truck me-2"></i>Manage Drivers</h2>
-            <p class="text-muted">View and manage all delivery drivers</p>
+    <div class="page-header">
+        <h1 class="page-title">Delivery Drivers</h1>
+        <p class="page-subtitle">Manage your delivery team efficiently and effectively</p>
+        
+        <div class="action-buttons">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+            <a href="{{ url_for('admin.add_driver') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Add New Driver
+            </a>
         </div>
     </div>
 
-    <!-- Statistics Overview -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="text-muted">Total Drivers</div>
-                <h3>{{ drivers|length }}</h3>
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-header">
+            <h3>Search Drivers</h3>
+            <div class="search-results">
+                Showing {{ drivers|length }} driver(s)
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="text-muted">Available</div>
-                <h3>{{ drivers|selectattr('is_available')|list|length }}</h3>
+        
+        <form id="searchForm" class="search-form" method="GET" action="{{ url_for('admin.manage_drivers') }}">
+            <div class="search-input-group">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       name="q" 
+                       class="search-input" 
+                       placeholder="Search by name, email, phone, or vehicle..." 
+                       value="{{ request.args.get('q', '') }}"
+                       aria-label="Search drivers">
             </div>
+            <button type="submit" class="btn-search">
+                <i class="fas fa-search"></i>
+                Search
+            </button>
+            {% if request.args.get('q') %}
+            <a href="{{ url_for('admin.manage_drivers') }}" class="btn-clear">
+                <i class="fas fa-times"></i>
+                Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Statistics Cards (Smaller) -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-number">{{ drivers|length }}</div>
+            <div class="stat-label">Total Drivers</div>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="text-muted">On Shift</div>
-                <h3>{{ drivers|selectattr('is_on_shift')|list|length }}</h3>
+        
+        <div class="stat-card">
+            <div class="stat-icon available">
+                <i class="fas fa-check-circle"></i>
             </div>
+            <div class="stat-number">{{ drivers|selectattr('is_available')|list|length }}</div>
+            <div class="stat-label">Available Now</div>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="text-muted">Avg Rating</div>
-                <h3>
-                    {% if drivers %}
-                        {{ "%.1f"|format(drivers|map(attribute='rating')|sum / drivers|length) }}
-                    {% else %}
-                        0.0
-                    {% endif %}
-                </h3>
+        
+        <div class="stat-card">
+            <div class="stat-icon onshift">
+                <i class="fas fa-clock"></i>
             </div>
+            <div class="stat-number">{{ drivers|selectattr('is_on_shift')|list|length }}</div>
+            <div class="stat-label">On Shift</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon rating">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-number">
+                {% if drivers %}
+                    {{ "%.1f"|format(drivers|map(attribute='rating')|sum / drivers|length) }}
+                {% else %}
+                    0.0
+                {% endif %}
+            </div>
+            <div class="stat-label">Average Rating</div>
         </div>
     </div>
 
-    <!-- Drivers Grid -->
-    <div class="row">
-        {% if drivers %}
-            {% for driver in drivers %}
-            <div class="col-md-6 col-lg-4">
-                <div class="driver-card">
-                    <div class="driver-header">
-                        <div class="driver-avatar">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                        <h5 class="text-center mt-3">{{ driver.user.username }}</h5>
-                        <p class="text-center text-muted mb-0">{{ driver.user.email }}</p>
-                    </div>
+    <!-- Drivers Table -->
+    <div class="drivers-table-container">
+        <div class="table-header">
+            <h3>Driver List</h3>
+        </div>
+        
+        <div class="table-content">
+            {% if drivers %}
+            <table class="drivers-table">
+                <thead>
+                    <tr>
+                        <th>Driver</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Deliveries</th>
+                        <th>Earnings</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for driver in drivers %}
+                    {% set vehicle_type = driver.vehicle_type|lower if driver.vehicle_type else 'default' %}
+                    {% set vehicle_icon = 'fas fa-question' %}
+                    {% set vehicle_class = 'default' %}
                     
-                    <div class="p-3">
-                        <!-- Driver Info -->
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Phone:</span>
-                                <span>{{ driver.user.phone_number or 'N/A' }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Vehicle:</span>
-                                <span>{{ driver.vehicle_type|title or 'N/A' }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">License:</span>
-                                <span>{{ driver.license_plate or 'N/A' }}</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Rating -->
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted">Rating:</span>
-                                <div class="rating-stars">
-                                    {% for i in range(5) %}
-                                        {% if i < driver.rating|int %}
-                                            <i class="fas fa-star"></i>
-                                        {% elif i < driver.rating %}
-                                            <i class="fas fa-star-half-alt"></i>
-                                        {% else %}
-                                            <i class="far fa-star"></i>
-                                        {% endif %}
-                                    {% endfor %}
-                                    <span class="ms-2">{{ "%.1f"|format(driver.rating) }}</span>
+                    {# Determine icon and class based on vehicle type #}
+                    {% if 'car' in vehicle_type or 'sedan' in vehicle_type or 'suv' in vehicle_type or 'van' in vehicle_type or 'truck' in vehicle_type %}
+                        {% set vehicle_icon = 'fas fa-car' %}
+                        {% set vehicle_class = 'car' %}
+                    {% elif 'motorcycle' in vehicle_type or 'scooter' in vehicle_type or 'bike' in vehicle_type and 'bi' not in vehicle_type %}
+                        {% set vehicle_icon = 'fas fa-motorcycle' %}
+                        {% set vehicle_class = 'motorcycle' %}
+                    {% elif 'bicycle' in vehicle_type or 'bike' in vehicle_type and 'motor' not in vehicle_type %}
+                        {% set vehicle_icon = 'fas fa-bicycle' %}
+                        {% set vehicle_class = 'bicycle' %}
+                    {% elif 'electric' in vehicle_type %}
+                        {% set vehicle_icon = 'fas fa-bolt' %}
+                        {% set vehicle_class = 'electric' %}
+                    {% else %}
+                        {% set vehicle_icon = 'fas fa-truck' %}
+                        {% set vehicle_class = 'default' %}
+                    {% endif %}
+                    
+                    <tr>
+                        <td>
+                            <div class="driver-info">
+                                <div class="driver-avatar {{ vehicle_class }}">
+                                    <i class="{{ vehicle_icon }}"></i>
+                                </div>
+                                <div class="driver-details">
+                                    <div class="driver-name">{{ driver.user.username }}</div>
+                                    <div class="driver-email">{{ driver.user.email }}</div>
+                                    <!-- Horizontal Star Rating under email -->
+                                    <div class="driver-rating-horizontal">
+                                        <div class="rating-stars-horizontal">
+                                            {% for i in range(5) %}
+                                                {% if i < driver.rating|int %}
+                                                    <i class="fas fa-star"></i>
+                                                {% elif i < driver.rating %}
+                                                    <i class="fas fa-star-half-alt"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="rating-value-horizontal">{{ "%.1f"|format(driver.rating) }}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <!-- Status -->
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted">Account Status:</span>
-                                {% if driver.user.is_active %}
-                                    <span class="status-badge bg-success">Active</span>
-                                {% else %}
-                                    <span class="status-badge bg-danger">Inactive</span>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span class="text-muted">Availability:</span>
-                                {% if driver.is_available %}
-                                    <span class="status-badge bg-primary">Available</span>
-                                {% else %}
-                                    <span class="status-badge bg-warning">Busy</span>
-                                {% endif %}
-                            </div>
-                            
-                            {% if driver.is_on_shift %}
-                                <small class="text-success d-block text-end">
-                                    <i class="fas fa-clock me-1"></i>On Shift
-                                </small>
+                        </td>
+                        <td>
+                            {{ driver.user.phone_number or 'N/A' }}
+                        </td>
+                        <td>
+                            {% if driver.user.is_active %}
+                                <span class="status-badge status-active">
+                                    <i class="fas fa-circle" style="font-size: 8px;"></i> Active
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-inactive">
+                                    <i class="fas fa-circle" style="font-size: 8px;"></i> Inactive
+                                </span>
                             {% endif %}
-                        </div>
-                        
-                        <!-- Stats -->
-                        <div class="row text-center mb-3">
-                            <div class="col-4">
-                                <div class="text-muted">Deliveries</div>
-                                <h5 class="mb-0">{{ driver.total_deliveries }}</h5>
+                            <br>
+                            {% if driver.is_available %}
+                                <span class="status-badge status-available" style="margin-top: 6px;">
+                                    <i class="fas fa-toggle-on"></i> Available
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-busy" style="margin-top: 6px;">
+                                    <i class="fas fa-toggle-off"></i> Busy
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <span style="font-weight: 600;">{{ driver.total_deliveries }}</span>
+                                <small style="color: var(--railway-text-secondary); font-size: 12px;">
+                                    {{ driver.completed_deliveries }} completed
+                                </small>
                             </div>
-                            <div class="col-4">
-                                <div class="text-muted">Completed</div>
-                                <h5 class="mb-0">{{ driver.completed_deliveries }}</h5>
+                        </td>
+                        <td>
+                            <span style="font-weight: 600; color: var(--railway-success);">
+                                ${{ "%.2f"|format(driver.total_earnings) }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <!-- View Button -->
+                                <a href="{{ url_for('admin.view_driver', driver_id=driver.driver_id) }}" 
+                                   class="btn btn-sm btn-view" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <!-- Edit Button -->
+                                <a href="{{ url_for('admin.edit_driver', driver_id=driver.driver_id) }}" 
+                                   class="btn btn-sm btn-edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <!-- Toggle Availability Button -->
+                                <button class="btn btn-sm btn-toggle toggle-availability" 
+                                        data-driver-id="{{ driver.driver_id }}"
+                                        data-is-available="{{ driver.is_available|lower }}"
+                                        title="Toggle Availability">
+                                    <i class="fas fa-toggle-{% if driver.is_available %}on{% else %}off{% endif %}"></i>
+                                </button>
+                                <!-- Delete Button -->
+                                <button class="btn btn-sm btn-delete delete-driver-btn"
+                                        data-driver-id="{{ driver.driver_id }}"
+                                        data-driver-name="{{ driver.user.username }}"
+                                        data-driver-email="{{ driver.user.email }}"
+                                        title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
-                            <div class="col-4">
-                                <div class="text-muted">Earnings</div>
-                                <h5 class="mb-0">${{ "%.2f"|format(driver.total_earnings) }}</h5>
-                            </div>
-                        </div>
-                        
-                        <!-- Action Buttons -->
-                        <div class="action-buttons">
-                            <a href="{{ url_for('admin.edit_driver', driver_id=driver.driver_id) }}" 
-                               class="btn btn-outline-primary btn-sm flex-fill">
-                                <i class="fas fa-edit me-1"></i>Edit
-                            </a>
-                            <button class="btn btn-outline-success btn-sm flex-fill toggle-availability"
-                                    data-driver-id="{{ driver.driver_id }}"
-                                    data-is-available="{{ driver.is_available|lower }}">
-                                {% if driver.is_available %}
-                                    <i class="fas fa-toggle-on me-1"></i>Busy
-                                {% else %}
-                                    <i class="fas fa-toggle-off me-1"></i>Available
-                                {% endif %}
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm flex-fill delete-driver-btn"
-                                    data-driver-id="{{ driver.driver_id }}"
-                                    data-driver-name="{{ driver.user.username }}"
-                                    data-driver-email="{{ driver.user.email }}">
-                                <i class="fas fa-trash me-1"></i>Delete
-                            </button>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-truck"></i>
                 </div>
+                <h3 class="empty-title">No Drivers Found</h3>
+                <p class="empty-description">
+                    {% if request.args.get('q') %}
+                        No drivers found matching "{{ request.args.get('q') }}"
+                    {% else %}
+                        Start building your delivery team by adding the first driver
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('admin.add_driver') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Add First Driver
+                </a>
+                {% if request.args.get('q') %}
+                <a href="{{ url_for('admin.manage_drivers') }}" class="btn btn-secondary mt-2">
+                    <i class="fas fa-times"></i>
+                    Clear Search
+                </a>
+                {% endif %}
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="col-12">
-                <div class="text-center py-5">
-                    <i class="fas fa-truck fa-3x text-muted mb-3"></i>
-                    <h4>No Drivers Found</h4>
-                    <p class="text-muted">Add your first delivery driver to get started</p>
-                    <a href="{{ url_for('admin.add_driver') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Add First Driver
-                    </a>
-                </div>
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade delete-confirm-modal" id="deleteDriverModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="deleteDriverModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete Driver
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirm Delete Driver
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-circle me-2"></i>
-                    <strong>Warning:</strong> This action cannot be undone. All driver data will be permanently deleted.
+                    <strong>Warning:</strong> This action cannot be undone.
                 </div>
                 
-                <div class="delete-driver-info">
-                    <div class="driver-summary">
-                        <div class="driver-summary-avatar">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                        <div>
-                            <h6 id="modalDriverName" class="mb-1"></h6>
-                            <p id="modalDriverEmail" class="text-muted mb-0"></p>
+                <div style="margin-bottom: 20px;">
+                    <p>Are you sure you want to delete this driver?</p>
+                    <div style="background: rgba(255, 255, 255, 0.03); padding: 16px; border-radius: 6px; border: 1px solid var(--railway-border);">
+                        <div class="driver-info">
+                            <div class="driver-avatar" id="modalDriverAvatar">
+                                <!-- Avatar will be set dynamically -->
+                            </div>
+                            <div class="driver-details">
+                                <div class="driver-name" id="modalDriverName"></div>
+                                <div class="driver-email" id="modalDriverEmail"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Type "DELETE" to confirm:</label>
+                    <label class="form-label">Type "DELETE" to confirm:</label>
                     <input type="text" class="form-control" id="confirmDeleteInput" placeholder="Type DELETE here">
                 </div>
                 
                 <div class="form-check mb-3">
                     <input class="form-check-input" type="checkbox" id="confirmCheckbox">
                     <label class="form-check-label" for="confirmCheckbox">
-                        I understand that this action is permanent and cannot be undone
+                        I understand this action is permanent
                     </label>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
-                    <i class="fas fa-trash me-2"></i>Delete Driver
+                    <i class="fas fa-trash me-2"></i>
+                    Delete Driver
                 </button>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script>
-    // Toggle driver availability (keep existing)
+    // Simple toast notification
+    function showToast(message, type = 'success') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `
+            <div class="toast-message">${message}</div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        // Add styles if not already added
+        if (!document.querySelector('.toast-styles')) {
+            const style = document.createElement('style');
+            style.textContent = `
+                .toast-notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--railway-card);
+                    border: 1px solid var(--railway-border);
+                    border-radius: 6px;
+                    padding: 16px 20px;
+                    box-shadow: var(--railway-shadow-lg);
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    min-width: 300px;
+                    z-index: 9999;
+                    border-left: 4px solid var(--railway-success);
+                    color: var(--railway-text);
+                }
+                .toast-notification.error {
+                    border-left-color: var(--railway-danger);
+                }
+                .toast-message {
+                    flex: 1;
+                }
+                .toast-close {
+                    background: none;
+                    border: none;
+                    font-size: 20px;
+                    cursor: pointer;
+                    color: var(--railway-text-secondary);
+                    margin-left: 10px;
+                    opacity: 0.7;
+                    transition: opacity 0.2s ease;
+                }
+                .toast-close:hover {
+                    opacity: 1;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+        
+        // Close button
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.remove();
+        });
+    }
+
+    // Auto-focus search input
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.querySelector('input[name="q"]');
+        if (searchInput) {
+            // Auto-focus if there's already a search query
+            if (searchInput.value) {
+                searchInput.focus();
+                searchInput.select();
+            }
+        }
+    });
+
+    // Toggle availability
     document.querySelectorAll('.toggle-availability').forEach(button => {
         button.addEventListener('click', function() {
             const driverId = this.dataset.driverId;
-            const isAvailable = this.dataset.isAvailable === 'true';
+            
+            // Disable button and show loading state
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            this.disabled = true;
             
             fetch(`/admin/drivers/${driverId}/toggle-availability`, {
                 method: 'POST',
@@ -382,33 +1105,24 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update button appearance
-                    if (data.is_available) {
-                        this.innerHTML = '<i class="fas fa-toggle-on me-1"></i>Busy';
-                        this.classList.remove('btn-outline-danger');
-                        this.classList.add('btn-outline-success');
-                        this.dataset.isAvailable = 'true';
-                    } else {
-                        this.innerHTML = '<i class="fas fa-toggle-off me-1"></i>Available';
-                        this.classList.remove('btn-outline-success');
-                        this.classList.add('btn-outline-danger');
-                        this.dataset.isAvailable = 'false';
-                    }
-                    
-                    // Show success message
-                    alert(data.message);
+                    showToast('Driver status updated successfully', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
                 } else {
-                    alert('Error: ' + data.message);
+                    showToast('Error: ' + data.message, 'error');
+                    this.innerHTML = originalHTML;
+                    this.disabled = false;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred');
+                showToast('An error occurred', 'error');
+                this.innerHTML = originalHTML;
+                this.disabled = false;
             });
         });
     });
 
-    // Delete driver functionality
+    // Delete driver modal with dynamic avatar
     let driverToDelete = null;
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteDriverModal'));
     const confirmDeleteInput = document.getElementById('confirmDeleteInput');
@@ -416,8 +1130,8 @@
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     const modalDriverName = document.getElementById('modalDriverName');
     const modalDriverEmail = document.getElementById('modalDriverEmail');
+    const modalDriverAvatar = document.getElementById('modalDriverAvatar');
 
-    // Open delete confirmation modal
     document.querySelectorAll('.delete-driver-btn').forEach(button => {
         button.addEventListener('click', function() {
             driverToDelete = {
@@ -426,23 +1140,30 @@
                 email: this.dataset.driverEmail
             };
             
-            console.log('Driver to delete:', driverToDelete); // Debug
-            
-            // Set modal content
             modalDriverName.textContent = driverToDelete.name;
             modalDriverEmail.textContent = driverToDelete.email;
             
-            // Reset confirmation fields
+            // Get the vehicle type from the row to set correct avatar
+            const row = this.closest('tr');
+            const driverAvatar = row.querySelector('.driver-avatar');
+            if (driverAvatar) {
+                // Clone the avatar with its classes and content
+                modalDriverAvatar.className = driverAvatar.className + ' driver-avatar';
+                modalDriverAvatar.innerHTML = driverAvatar.innerHTML;
+            } else {
+                // Default avatar
+                modalDriverAvatar.className = 'driver-avatar default';
+                modalDriverAvatar.innerHTML = '<i class="fas fa-truck"></i>';
+            }
+            
             confirmDeleteInput.value = '';
             confirmCheckbox.checked = false;
             confirmDeleteBtn.disabled = true;
             
-            // Show modal
             deleteModal.show();
         });
     });
 
-    // Enable/disable delete button based on confirmation
     function updateDeleteButtonState() {
         const isConfirmed = confirmDeleteInput.value === 'DELETE' && confirmCheckbox.checked;
         confirmDeleteBtn.disabled = !isConfirmed;
@@ -451,63 +1172,48 @@
     confirmDeleteInput.addEventListener('input', updateDeleteButtonState);
     confirmCheckbox.addEventListener('change', updateDeleteButtonState);
 
-    // Handle delete confirmation - SIMPLE VERSION
     confirmDeleteBtn.addEventListener('click', function() {
         if (!driverToDelete) return;
         
-        // Construct the URL
-        const deleteUrl = `/admin/drivers/${driverToDelete.id}/delete`;
-        console.log('Making DELETE request to:', deleteUrl);
+        // Show loading state
+        const originalHTML = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+        this.disabled = true;
         
-        fetch(deleteUrl, {
+        fetch(`/admin/drivers/${driverToDelete.id}/delete`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             }
         })
-        .then(async response => {
-            console.log('Response status:', response.status);
-            
-            try {
-                const data = await response.json();
-                
-                if (response.status === 200 && data.success) {
-                    alert(data.message || 'Driver deleted successfully');
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    } else {
-                        window.location.reload();
-                    }
-                } else if (response.status === 404) {
-                    alert('Driver not found');
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Driver deleted successfully', 'success');
+                deleteModal.hide();
+                setTimeout(() => {
                     window.location.reload();
-                } else {
-                    alert('Error: ' + (data.message || data.error || 'Failed to delete driver'));
-                }
-            } catch (jsonError) {
-                // Handle non-JSON responses
-                if (response.status === 204) {
-                    alert('Driver deleted successfully');
-                    window.location.reload();
-                } else {
-                    const text = await response.text();
-                    alert(`Error: HTTP ${response.status} - ${text || 'Unknown error'}`);
-                }
+                }, 1500);
+            } else {
+                showToast('Error: ' + data.message, 'error');
+                this.innerHTML = originalHTML;
+                this.disabled = false;
             }
         })
         .catch(error => {
-            console.error('Fetch error:', error);
-            alert('Network error: ' + error.message);
-        })
-        .finally(() => {
-            deleteModal.hide();
+            console.error('Error:', error);
+            showToast('An error occurred', 'error');
+            this.innerHTML = originalHTML;
+            this.disabled = false;
         });
     });
 
-    // Clear driverToDelete when modal is hidden
-    document.getElementById('deleteDriverModal').addEventListener('hidden.bs.modal', function() {
-        driverToDelete = null;
+    // Close modal on escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && deleteModal._isShown) {
+            deleteModal.hide();
+        }
     });
 </script>
 {% endblock %}

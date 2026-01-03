@@ -186,17 +186,21 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Shift Start Time</label>
-                            <input type="time" class="form-control" name="shift_start" 
-                                   placeholder="09:00">
+                            {{ form.shift_start.label(class="form-label") }}
+                            {{ form.shift_start(class="form-control", placeholder="09:00") }}
                             <small class="text-muted">Default working hours start</small>
+                            {% if form.shift_start.errors %}
+                                <div class="text-danger">{{ form.shift_start.errors[0] }}</div>
+                            {% endif %}
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Shift End Time</label>
-                            <input type="time" class="form-control" name="shift_end" 
-                                   placeholder="17:00">
+                            {{ form.shift_end.label(class="form-label") }}
+                            {{ form.shift_end(class="form-control", placeholder="17:00") }}
                             <small class="text-muted">Default working hours end</small>
+                            {% if form.shift_end.errors %}
+                                <div class="text-danger">{{ form.shift_end.errors[0] }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -207,21 +211,23 @@
                     
                     <div class="mb-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="is_available" id="is_available" checked>
-                            <label class="form-check-label" for="is_available">
-                                Available for deliveries
-                            </label>
+                            {{ form.is_available(class="form-check-input") }}
+                            {{ form.is_available.label(class="form-check-label") }}
                             <small class="text-muted d-block">Driver will appear as available in the system</small>
+                            {% if form.is_available.errors %}
+                                <div class="text-danger">{{ form.is_available.errors[0] }}</div>
+                            {% endif %}
                         </div>
                     </div>
                     
                     <div class="mb-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="is_on_shift" id="is_on_shift">
-                            <label class="form-check-label" for="is_on_shift">
-                                Currently on shift
-                            </label>
+                            {{ form.is_on_shift(class="form-check-input") }}
+                            {{ form.is_on_shift.label(class="form-check-label") }}
                             <small class="text-muted d-block">Driver is actively working now</small>
+                            {% if form.is_on_shift.errors %}
+                                <div class="text-danger">{{ form.is_on_shift.errors[0] }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

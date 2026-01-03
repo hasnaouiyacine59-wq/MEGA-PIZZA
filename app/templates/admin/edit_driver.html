@@ -5,7 +5,7 @@
 {% block styles %}
 <style>
     .form-container {
-        max-width: 600px;
+        max-width: 800px;
         margin: 0 auto;
         padding: 30px;
     }
@@ -35,12 +35,16 @@
         padding: 30px;
     }
     
-    .driver-info-box {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 25px;
-        border-left: 4px solid var(--primary-color);
+    .form-section {
+        border-top: 2px solid #f0f0f0;
+        padding-top: 25px;
+        margin-top: 25px;
+    }
+    
+    .section-title {
+        color: var(--primary-color);
+        margin-bottom: 20px;
+        font-weight: 600;
     }
 </style>
 {% endblock %}
@@ -62,117 +66,212 @@
             <div class="form-icon">
                 <i class="fas fa-user-edit"></i>
             </div>
-            <h2>Edit Driver</h2>
-            <p class="text-muted">Update driver information</p>
-        </div>
-        
-        <!-- Driver Information Summary -->
-        <div class="driver-info-box">
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Driver ID:</strong> {{ driver.driver_id }}</p>
-                    <p><strong>Username:</strong> {{ driver.user.username }}</p>
-                    <p><strong>Email:</strong> {{ driver.user.email }}</p>
-                </div>
-                <div class="col-md-6">
-                    <p><strong>Vehicle:</strong> {{ driver.vehicle_type|title or 'N/A' }}</p>
-                    <p><strong>License Plate:</strong> {{ driver.license_plate or 'N/A' }}</p>
-                    <p><strong>Status:</strong> 
-                        {% if driver.user.is_active %}
-                            <span class="badge bg-success">Active</span>
-                        {% else %}
-                            <span class="badge bg-danger">Inactive</span>
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
+            <h2>Edit Driver: {{ driver.user.username if driver.user else 'Unknown' }}</h2>
+            <p class="text-muted">Update driver information and settings</p>
         </div>
         
         <div class="form-card">
-            <form method="POST" action="{{ url_for('admin.edit_driver', driver_id=driver.driver_id) }}" novalidate>
+            <form method="POST">
                 {{ form.hidden_tag() }}
                 
+                <!-- SECTION 1: Account Information -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Username *</label>
-                        {{ form.username(class="form-control") }}
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control", placeholder="driver_username") }}
+                        <small class="text-muted">Unique identifier for login</small>
                         {% if form.username.errors %}
-                            <div class="text-danger">
-                                {% for error in form.username.errors %}
-                                    <small>{{ error }}</small>
-                                {% endfor %}
-                            </div>
+                            <div class="text-danger">{{ form.username.errors[0] }}</div>
                         {% endif %}
                     </div>
                     
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Email *</label>
-                        {{ form.email(class="form-control") }}
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control", placeholder="driver@email.com") }}
                         {% if form.email.errors %}
-                            <div class="text-danger">
-                                {% for error in form.email.errors %}
-                                    <small>{{ error }}</small>
-                                {% endfor %}
-                            </div>
+                            <div class="text-danger">{{ form.email.errors[0] }}</div>
                         {% endif %}
                     </div>
                 </div>
                 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Phone Number *</label>
-                        {{ form.phone(class="form-control") }}
+                        {{ form.phone.label(class="form-label") }}
+                        {{ form.phone(class="form-control", placeholder="+1234567890") }}
+                        <small class="text-muted">For delivery coordination</small>
                         {% if form.phone.errors %}
-                            <div class="text-danger">
-                                {% for error in form.phone.errors %}
-                                    <small>{{ error }}</small>
-                                {% endfor %}
-                            </div>
+                            <div class="text-danger">{{ form.phone.errors[0] }}</div>
                         {% endif %}
                     </div>
                     
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">New Password</label>
-                        {{ form.password(class="form-control", placeholder="Leave blank to keep current") }}
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control", placeholder="Leave blank to keep current password") }}
+                        <small class="text-muted">Only enter to change password</small>
                         {% if form.password.errors %}
-                            <div class="text-danger">
-                                {% for error in form.password.errors %}
-                                    <small>{{ error }}</small>
-                                {% endfor %}
-                            </div>
+                            <div class="text-danger">{{ form.password.errors[0] }}</div>
                         {% endif %}
-                        <small class="text-muted">Minimum 6 characters</small>
                     </div>
                 </div>
                 
-                <div class="mb-3">
-                    <label class="form-label">Status</label>
-                    {{ form.status(class="form-select") }}
-                    {% if form.status.errors %}
-                        <div class="text-danger">
-                            {% for error in form.status.errors %}
-                                {{ error }}
-                            {% endfor %}
+                <!-- SECTION 2: Driver Information -->
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-id-card me-2"></i>Driver Information</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.license_number.label(class="form-label") }}
+                            {{ form.license_number(class="form-control", placeholder="DRIVER12345") }}
+                            {% if form.license_number.errors %}
+                                <div class="text-danger">{{ form.license_number.errors[0] }}</div>
+                            {% endif %}
                         </div>
-                    {% endif %}
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.vehicle_type.label(class="form-label") }}
+                            {{ form.vehicle_type(class="form-control") }}
+                            {% if form.vehicle_type.errors %}
+                                <div class="text-danger">{{ form.vehicle_type.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.vehicle_model.label(class="form-label") }}
+                            {{ form.vehicle_model(class="form-control", placeholder="Toyota Corolla 2022") }}
+                            {% if form.vehicle_model.errors %}
+                                <div class="text-danger">{{ form.vehicle_model.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.license_plate.label(class="form-label") }}
+                            {{ form.license_plate(class="form-control", placeholder="ABC-123") }}
+                            {% if form.license_plate.errors %}
+                                <div class="text-danger">{{ form.license_plate.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                    <a href="{{ url_for('admin.manage_drivers') }}" class="btn btn-secondary me-md-2">
-                        <i class="fas fa-times me-1"></i> Cancel
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> Update Driver
+                <!-- SECTION 3: Emergency Contact -->
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-phone-alt me-2"></i>Emergency Contact</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.emergency_contact.label(class="form-label") }}
+                            {{ form.emergency_contact(class="form-control", placeholder="John Doe") }}
+                            <small class="text-muted">Emergency contact person name</small>
+                            {% if form.emergency_contact.errors %}
+                                <div class="text-danger">{{ form.emergency_contact.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.emergency_phone.label(class="form-label") }}
+                            {{ form.emergency_phone(class="form-control", placeholder="+1234567890") }}
+                            <small class="text-muted">Emergency contact phone number</small>
+                            {% if form.emergency_phone.errors %}
+                                <div class="text-danger">{{ form.emergency_phone.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 4: Shift Information (Optional) -->
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-clock me-2"></i>Shift Information (Optional)</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.shift_start.label(class="form-label") }}
+                            {{ form.shift_start(class="form-control", placeholder="09:00") }}
+                            <small class="text-muted">Default working hours start</small>
+                            {% if form.shift_start.errors %}
+                                <div class="text-danger">{{ form.shift_start.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.shift_end.label(class="form-label") }}
+                            {{ form.shift_end(class="form-control", placeholder="17:00") }}
+                            <small class="text-muted">Default working hours end</small>
+                            {% if form.shift_end.errors %}
+                                <div class="text-danger">{{ form.shift_end.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 5: Driver Status -->
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-toggle-on me-2"></i>Driver Status</h5>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_available(class="form-check-input") }}
+                            {{ form.is_available.label(class="form-check-label") }}
+                            <small class="text-muted d-block">Driver will appear as available in the system</small>
+                            {% if form.is_available.errors %}
+                                <div class="text-danger">{{ form.is_available.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_on_shift(class="form-check-input") }}
+                            {{ form.is_on_shift.label(class="form-check-label") }}
+                            <small class="text-muted d-block">Driver is actively working now</small>
+                            {% if form.is_on_shift.errors %}
+                                <div class="text-danger">{{ form.is_on_shift.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 6: Account Status -->
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-user-cog me-2"></i>Account Status</h5>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-check-inline">
+                            {{ form.status(class="form-check-input") }}
+                            <div class="d-flex flex-column">
+                                {% for subfield in form.status %}
+                                    <div class="form-check">
+                                        {{ subfield(class="form-check-input") }}
+                                        {{ subfield.label(class="form-check-label") }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <small class="text-muted d-block">Active drivers can login, inactive cannot</small>
+                        {% if form.status.errors %}
+                            <div class="text-danger">{{ form.status.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Submit Buttons -->
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save me-2"></i>Update Driver
                     </button>
+                    <a href="{{ url_for('admin.manage_drivers') }}" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
                 </div>
             </form>
         </div>
         
-        <div class="mt-4">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>Note:</strong> Changing the password will update the driver's login credentials.
-            </div>
+        <div class="mt-4 text-center text-muted">
+            <small>
+                <i class="fas fa-info-circle me-1"></i>
+                Changes will take effect immediately
+            </small>
         </div>
     </div>
 </div>
