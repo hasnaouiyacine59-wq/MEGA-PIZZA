@@ -10,6 +10,19 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 ALTER DATABASE mega_pizza_db SET "app.jwt_secret" TO 'your-jwt-secret-here';
 
 -- ============================================
+-- CREATE FUNCTION FOR UPDATED_AT TRIGGER
+-- ============================================
+
+-- Function to update updated_at timestamp (MUST BE CREATED BEFORE TRIGGERS)
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- ============================================
 -- CREATE BASE TABLES (NO FOREIGN KEY DEPENDENCIES)
 -- ============================================
 
@@ -17,11 +30,31 @@ ALTER DATABASE mega_pizza_db SET "app.jwt_secret" TO 'your-jwt-secret-here';
 CREATE TABLE IF NOT EXISTS restaurants (
     restaurant_id VARCHAR(20) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    description TEXT,
     address TEXT NOT NULL,
     phone VARCHAR(20),
+    email VARCHAR(100),
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8),
+    delivery_radius INTEGER,
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    is_open BOOLEAN DEFAULT true,
+    opening_time TIME,
+    closing_time TIME,
+    min_order_amount DECIMAL(10, 2) DEFAULT 0,
+    delivery_fee DECIMAL(10, 2) DEFAULT 0,
+    estimated_prep_time INTEGER,
+    rating DECIMAL(3, 2) DEFAULT 0.00,
+    total_reviews INTEGER DEFAULT 0,
+    logo_url VARCHAR(255),
+    banner_url VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Create trigger for restaurants updated_at
+CREATE TRIGGER update_restaurants_updated_at BEFORE UPDATE ON restaurants
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
 -- CREATE USERS TABLE (Authentication)
@@ -304,15 +337,36 @@ CREATE TRIGGER update_drivers_updated_at BEFORE UPDATE ON drivers
 -- ============================================
 
 -- Insert sample restaurants
-INSERT INTO restaurants (restaurant_id, name, address, phone, is_active) 
+-- Update the sample restaurants insertions
+INSERT INTO restaurants (
+    restaurant_id, name, description, address, phone, email, 
+    latitude, longitude, delivery_radius, is_active, is_open,
+    opening_time, closing_time, min_order_amount, delivery_fee,
+    estimated_prep_time, rating, total_reviews
+) 
 VALUES 
-    ('REST-001', 'Burger Palace', '123 Food Street, Springfield', '+1234567890', true),
-    ('REST-002', 'Pizza Heaven', '456 Pizza Road, Metropolis', '+1234567891', true),
-    ('REST-003', 'Taco Fiesta', '789 Taco Lane, Gotham', '+1234567892', true),
-    ('REST-004', 'Sushi Express', '321 Sushi Blvd, Tokyo Town', '+1234567893', true),
-    ('REST-005', 'Pasta Paradise', '654 Pasta Ave, Little Italy', '+1234567894', true)
-ON CONFLICT (restaurant_id) DO NOTHING;
-
+    ('REST-001', 'Burger Palace', 'Best burgers in town!', 
+     '123 Food Street, Springfield', '+1234567890', 'contact@burgerpalace.com',
+     40.712776, -74.005974, 5, true, true, '09:00:00', '22:00:00', 10.00, 2.99, 20, 4.5, 120),
+    ('REST-002', 'Pizza Heaven', 'Heavenly pizza made with love', 
+     '456 Pizza Road, Metropolis', '+1234567891', 'info@pizzaheaven.com',
+     40.758896, -73.985130, 6, true, true, '10:00:00', '23:00:00', 12.00, 2.99, 15, 4.7, 200),
+    ('REST-003', 'Taco Fiesta', 'Authentic Mexican tacos', 
+     '789 Taco Lane, Gotham', '+1234567892', 'hello@tacofiesta.com',
+     40.748817, -73.985428, 4, true, true, '11:00:00', '22:00:00', 8.00, 1.99, 10, 4.3, 85),
+    ('REST-004', 'Sushi Express', 'Fresh sushi delivered fast', 
+     '321 Sushi Blvd, Tokyo Town', '+1234567893', 'order@sushiexpress.com',
+     40.714283, -74.006139, 5, true, true, '12:00:00', '23:00:00', 15.00, 3.99, 25, 4.6, 150),
+    ('REST-005', 'Pasta Paradise', 'Homemade Italian pasta', 
+     '654 Pasta Ave, Little Italy', '+1234567894', 'service@pastaparadise.com',
+     40.720824, -73.997330, 5, true, true, '10:30:00', '22:30:00', 12.00, 2.99, 18, 4.4, 95)
+ON CONFLICT (restaurant_id) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description,
+    address = EXCLUDED.address,
+    phone = EXCLUDED.phone,
+    email = EXCLUDED.email,
+    updated_at = CURRENT_TIMESTAMP;
 -- Create default admin user (password: Admin@123)
 INSERT INTO users (username, email, password_hash, role, restaurant_id, phone_number, is_active) 
 VALUES (

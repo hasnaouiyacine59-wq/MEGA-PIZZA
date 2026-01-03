@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Mega Pizza{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: var(--dark-color);">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">🍕 Mega Pizza</a>
+        <div class="navbar-nav ms-auto">
+            <span class="navbar-text me-3">{{ current_user.username }} ({{ current_user.role }})</span>
+            <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container" style="padding: 30px;">
+    <div class="welcome-card" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border-radius: 15px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);">
+        <h1>Welcome, {{ current_user.username }}!</h1>
+        <p class="lead">You are logged in as a {{ current_user.role }}.</p>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-history"></i> Order History</h5>
+                    <p>View your past orders and receipts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-shopping-cart"></i> New Order</h5>
+                    <p>Place a new pizza order</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-user"></i> Profile</h5>
+                    <p>Update your account information</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

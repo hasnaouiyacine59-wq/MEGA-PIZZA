@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 
-{% block title %}Login - Mega Pizza{% endblock %}
+{% block head %}
 
-{% block styles %}
+{{ super() }}
 <style>
     body {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -215,6 +215,7 @@
     }
 </style>
 {% endblock %}
+{% block title %}Login - Mega Pizza{% endblock %}
 
 {% block content %}
 <div class="login-container">
@@ -226,10 +227,11 @@
     
     <div class="login-body">
         <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm">
-            {{ form.hidden_tag() }}  <!-- CSRF Token -->
-            
+                {{ form.hidden_tag() }}  <!-- ADD THIS LINE FOR CSRF -->
+
             <div class="form-floating">
-                {{ form.username(class="form-control", id="username", placeholder="Username", autofocus=true) }}
+                <input type="text" class="form-control" id="username" name="username" 
+                       placeholder="Username" required autofocus>
                 <label for="username"><i class="fas fa-user me-2"></i>Username</label>
                 <span class="input-icon">
                     <i class="fas fa-user"></i>
@@ -237,7 +239,8 @@
             </div>
             
             <div class="form-floating">
-                {{ form.password(class="form-control", id="password", placeholder="Password") }}
+                <input type="password" class="form-control" id="password" name="password" 
+                       placeholder="Password" required>
                 <label for="password"><i class="fas fa-lock me-2"></i>Password</label>
                 <span class="input-icon">
                     <i class="fas fa-lock"></i>
@@ -285,23 +288,35 @@
         }
     });
     
-    // Remove form validation for now
-    // document.getElementById('loginForm').addEventListener('submit', function(e) {
-    //     const username = document.getElementById('username').value;
-    //     const password = document.getElementById('password').value;
+    // Form validation and animation
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
         
-    //     if (!username || !password) {
-    //         e.preventDefault();
-    //         const inputs = document.querySelectorAll('input[required]');
-    //         inputs.forEach(input => {
-    //             if (!input.value) {
-    //                 input.style.animation = 'shake 0.5s';
-    //                 input.addEventListener('animationend', () => {
-    //                     input.style.animation = '';
-    //                 });
-    //             }
-    //         });
-    //     }
-    // });
+        if (!username || !password) {
+            e.preventDefault();
+            // Add shake animation to empty fields
+            const inputs = document.querySelectorAll('input[required]');
+            inputs.forEach(input => {
+                if (!input.value) {
+                    input.style.animation = 'shake 0.5s';
+                    input.addEventListener('animationend', () => {
+                        input.style.animation = '';
+                    });
+                }
+            });
+        }
+    });
+    
+    // Add shake animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    `;
+    document.head.appendChild(style);
 </script>
 {% endblock %}

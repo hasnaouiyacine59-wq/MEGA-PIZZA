@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Create Admin - Mega Pizza{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-success">
+        ✅ Admin user created successfully!<br>
+        Username: admin<br>
+        Password: Admin@123
+    </div>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Go to Login</a>
+</div>
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Drivers - Mega Pizza{% endblock %}
+
+{% block styles %}
+<style>
+    .driver-card {
+        background: white;
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    
+    .driver-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+    
+    .driver-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 20px;
+        position: relative;
+    }
+    
+    .driver-header .badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+    
+    .driver-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin: 0 auto 15px;
+        border: 4px solid white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .driver-info {
+        background: #f8f9fa;
+        border-top: 1px solid #e1e5eb;
+        border-bottom: 1px solid #e1e5eb;
+    }
+    
+    .driver-stats {
+        display: flex;
+        justify-content: space-around;
+        padding: 15px;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .action-buttons {
+        padding: 15px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-action {
+        flex: 1;
+        padding: 8px;
+        border-radius: 8px;
+        border: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-view { background: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+    .btn-view:hover { background: #0d6efd; color: white; }
+    
+    .btn-edit { background: rgba(25, 135, 84, 0.1); color: #198754; }
+    .btn-edit:hover { background: #198754; color: white; }
+    
+    .btn-toggle { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .btn-toggle:hover { background: #ffc107; color: white; }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+    
+    .add-driver-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border: none;
+        box-shadow: 0 5px 20px rgba(255, 107, 53, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .add-driver-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-dark bg-dark rounded mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">
+            <i class="fas fa-arrow-left me-2"></i>Driver Management
+        </a>
+        <div class="navbar-text text-white">
+            <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card text-white" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                <div class="card-body">
+                    <h6 class="card-title">Total Drivers</h6>
+                    <h2 class="mb-0">{{ total_drivers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card text-white" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                <div class="card-body">
+                    <h6 class="card-title">Available Now</h6>
+                    <h2 class="mb-0">{{ available_drivers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card text-white" style="background: linear-gradient(135deg, #ff6b35, #ffa500);">
+                <div class="card-body">
+                    <h6 class="card-title">On Duty</h6>
+                    <h2 class="mb-0">{{ on_duty_drivers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card text-white" style="background: linear-gradient(135deg, #17a2b8, #0dcaf0);">
+                <div class="card-body">
+                    <h6 class="card-title">Avg Rating</h6>
+                    <h2 class="mb-0">
+                        {{ "%.1f"|format(avg_rating) if drivers else "0.0" }}
+                        <small>/5</small>
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Drivers Grid -->
+    <div class="row">
+        {% if drivers %}
+            {% for driver in drivers %}
+            <div class="col-xl-3 col-lg-4 col-md-6">
+                <div class="driver-card">
+                    <div class="driver-header">
+                        {{ driver.get_status_badge()|safe }}
+                        <div class="driver-avatar">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h5 class="text-center mb-1">{{ driver.user.username }}</h5>
+                        <p class="text-center mb-2" style="opacity: 0.9;">
+                            <i class="fas fa-car me-1"></i>{{ driver.vehicle_type or "No vehicle" }}
+                        </p>
+                        <div class="driver-rating text-center">
+                            {{ driver.calculate_rating_stars()|safe }}
+                            <span style="color: white; margin-left: 5px;">{{ "%.1f"|format(driver.rating) }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="driver-info p-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">License:</small>
+                                <p class="mb-2"><strong>{{ driver.license_number or "N/A" }}</strong></p>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Vehicle:</small>
+                                <p class="mb-2"><strong>{{ driver.license_plate or "N/A" }}</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="driver-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ driver.total_deliveries }}</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ driver.completed_deliveries }}</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${{ "%.0f"|format(driver.total_earnings) }}</div>
+                            <div class="stat-label">Earnings</div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-action btn-view" onclick="viewDriver({{ driver.driver_id }})">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="btn-action btn-edit" onclick="editDriver({{ driver.driver_id }})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn-action btn-toggle" onclick="toggleAvailability({{ driver.driver_id }}, {{ driver.is_available|lower }})">
+                            <i class="fas fa-power-off"></i> {{ "Make Busy" if driver.is_available else "Make Available" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="col-12">
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <h4>No Drivers Registered</h4>
+                <p>Register your first delivery driver to start accepting orders.</p>
+                <a href="{{ url_for('register_driver') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Register First Driver
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Driver Floating Button -->
+<button class="add-driver-btn" onclick="location.href='{{ url_for('register_driver') }}'">
+    <i class="fas fa-plus"></i>
+</button>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function viewDriver(driverId) {
+        window.location.href = `/admin/drivers/${driverId}`;
+    }
+    
+    function editDriver(driverId) {
+        window.location.href = `/admin/drivers/${driverId}/edit`;
+    }
+    
+    function toggleAvailability(driverId, isAvailable) {
+        fetch(`/admin/drivers/${driverId}/toggle-availability`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({is_available: !isAvailable})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+</script>
+{% endblock %}

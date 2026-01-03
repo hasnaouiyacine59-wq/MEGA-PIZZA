@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Drivers - Mega Pizza Admin{% endblock %}
+
+{% block styles %}
+<style>
+    .driver-card {
+        border-radius: 10px;
+        border: 1px solid #e1e5eb;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    
+    .driver-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border-color: var(--primary-color);
+    }
+    
+    .driver-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 20px;
+        border-bottom: 1px solid #e1e5eb;
+        border-radius: 10px 10px 0 0;
+    }
+    
+    .driver-avatar {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary-color), #ffa500);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        margin: 0 auto;
+    }
+    
+    .rating-stars {
+        color: #ffc107;
+    }
+    
+    .status-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #e1e5eb;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    /* Header Navigation */
+    .page-header-nav {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .back-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 8px 15px;
+        border-radius: 8px;
+        border: 1px solid #e1e5eb;
+        transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+        background: rgba(255, 107, 53, 0.1);
+        border-color: var(--primary-color);
+        transform: translateX(-3px);
+    }
+    
+    /* Delete Modal Styles */
+    .delete-confirm-modal .modal-header {
+        background: linear-gradient(135deg, #ff6b35, #ffa500);
+        color: white;
+    }
+    
+    .delete-driver-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .driver-summary {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .driver-summary-avatar {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary-color), #ffa500);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Navigation -->
+    <div class="page-header-nav">
+        <a href="{{ url_for('admin.dashboard') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+        <div style="flex: 1"></div>
+        <a href="{{ url_for('admin.add_driver') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add New Driver
+        </a>
+    </div>
+
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-truck me-2"></i>Manage Drivers</h2>
+            <p class="text-muted">View and manage all delivery drivers</p>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="text-muted">Total Drivers</div>
+                <h3>{{ drivers|length }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="text-muted">Available</div>
+                <h3>{{ drivers|selectattr('is_available')|list|length }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="text-muted">On Shift</div>
+                <h3>{{ drivers|selectattr('is_on_shift')|list|length }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="text-muted">Avg Rating</div>
+                <h3>
+                    {% if drivers %}
+                        {{ "%.1f"|format(drivers|map(attribute='rating')|sum / drivers|length) }}
+                    {% else %}
+                        0.0
+                    {% endif %}
+                </h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drivers Grid -->
+    <div class="row">
+        {% if drivers %}
+            {% for driver in drivers %}
+            <div class="col-md-6 col-lg-4">
+                <div class="driver-card">
+                    <div class="driver-header">
+                        <div class="driver-avatar">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h5 class="text-center mt-3">{{ driver.user.username }}</h5>
+                        <p class="text-center text-muted mb-0">{{ driver.user.email }}</p>
+                    </div>
+                    
+                    <div class="p-3">
+                        <!-- Driver Info -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Phone:</span>
+                                <span>{{ driver.user.phone_number or 'N/A' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Vehicle:</span>
+                                <span>{{ driver.vehicle_type|title or 'N/A' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">License:</span>
+                                <span>{{ driver.license_plate or 'N/A' }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Rating -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Rating:</span>
+                                <div class="rating-stars">
+                                    {% for i in range(5) %}
+                                        {% if i < driver.rating|int %}
+                                            <i class="fas fa-star"></i>
+                                        {% elif i < driver.rating %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2">{{ "%.1f"|format(driver.rating) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Account Status:</span>
+                                {% if driver.user.is_active %}
+                                    <span class="status-badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="status-badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="text-muted">Availability:</span>
+                                {% if driver.is_available %}
+                                    <span class="status-badge bg-primary">Available</span>
+                                {% else %}
+                                    <span class="status-badge bg-warning">Busy</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if driver.is_on_shift %}
+                                <small class="text-success d-block text-end">
+                                    <i class="fas fa-clock me-1"></i>On Shift
+                                </small>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Stats -->
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <div class="text-muted">Deliveries</div>
+                                <h5 class="mb-0">{{ driver.total_deliveries }}</h5>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted">Completed</div>
+                                <h5 class="mb-0">{{ driver.completed_deliveries }}</h5>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted">Earnings</div>
+                                <h5 class="mb-0">${{ "%.2f"|format(driver.total_earnings) }}</h5>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <a href="{{ url_for('admin.edit_driver', driver_id=driver.driver_id) }}" 
+                               class="btn btn-outline-primary btn-sm flex-fill">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <button class="btn btn-outline-success btn-sm flex-fill toggle-availability"
+                                    data-driver-id="{{ driver.driver_id }}"
+                                    data-is-available="{{ driver.is_available|lower }}">
+                                {% if driver.is_available %}
+                                    <i class="fas fa-toggle-on me-1"></i>Busy
+                                {% else %}
+                                    <i class="fas fa-toggle-off me-1"></i>Available
+                                {% endif %}
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm flex-fill delete-driver-btn"
+                                    data-driver-id="{{ driver.driver_id }}"
+                                    data-driver-name="{{ driver.user.username }}"
+                                    data-driver-email="{{ driver.user.email }}">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+                    <h4>No Drivers Found</h4>
+                    <p class="text-muted">Add your first delivery driver to get started</p>
+                    <a href="{{ url_for('admin.add_driver') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add First Driver
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade delete-confirm-modal" id="deleteDriverModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete Driver
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone. All driver data will be permanently deleted.
+                </div>
+                
+                <div class="delete-driver-info">
+                    <div class="driver-summary">
+                        <div class="driver-summary-avatar">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div>
+                            <h6 id="modalDriverName" class="mb-1"></h6>
+                            <p id="modalDriverEmail" class="text-muted mb-0"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Type "DELETE" to confirm:</label>
+                    <input type="text" class="form-control" id="confirmDeleteInput" placeholder="Type DELETE here">
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmCheckbox">
+                    <label class="form-check-label" for="confirmCheckbox">
+                        I understand that this action is permanent and cannot be undone
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                    <i class="fas fa-trash me-2"></i>Delete Driver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    // Toggle driver availability (keep existing)
+    document.querySelectorAll('.toggle-availability').forEach(button => {
+        button.addEventListener('click', function() {
+            const driverId = this.dataset.driverId;
+            const isAvailable = this.dataset.isAvailable === 'true';
+            
+            fetch(`/admin/drivers/${driverId}/toggle-availability`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update button appearance
+                    if (data.is_available) {
+                        this.innerHTML = '<i class="fas fa-toggle-on me-1"></i>Busy';
+                        this.classList.remove('btn-outline-danger');
+                        this.classList.add('btn-outline-success');
+                        this.dataset.isAvailable = 'true';
+                    } else {
+                        this.innerHTML = '<i class="fas fa-toggle-off me-1"></i>Available';
+                        this.classList.remove('btn-outline-success');
+                        this.classList.add('btn-outline-danger');
+                        this.dataset.isAvailable = 'false';
+                    }
+                    
+                    // Show success message
+                    alert(data.message);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
+        });
+    });
+
+    // Delete driver functionality
+    let driverToDelete = null;
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteDriverModal'));
+    const confirmDeleteInput = document.getElementById('confirmDeleteInput');
+    const confirmCheckbox = document.getElementById('confirmCheckbox');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const modalDriverName = document.getElementById('modalDriverName');
+    const modalDriverEmail = document.getElementById('modalDriverEmail');
+
+    // Open delete confirmation modal
+    document.querySelectorAll('.delete-driver-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            driverToDelete = {
+                id: this.dataset.driverId,
+                name: this.dataset.driverName,
+                email: this.dataset.driverEmail
+            };
+            
+            console.log('Driver to delete:', driverToDelete); // Debug
+            
+            // Set modal content
+            modalDriverName.textContent = driverToDelete.name;
+            modalDriverEmail.textContent = driverToDelete.email;
+            
+            // Reset confirmation fields
+            confirmDeleteInput.value = '';
+            confirmCheckbox.checked = false;
+            confirmDeleteBtn.disabled = true;
+            
+            // Show modal
+            deleteModal.show();
+        });
+    });
+
+    // Enable/disable delete button based on confirmation
+    function updateDeleteButtonState() {
+        const isConfirmed = confirmDeleteInput.value === 'DELETE' && confirmCheckbox.checked;
+        confirmDeleteBtn.disabled = !isConfirmed;
+    }
+
+    confirmDeleteInput.addEventListener('input', updateDeleteButtonState);
+    confirmCheckbox.addEventListener('change', updateDeleteButtonState);
+
+    // Handle delete confirmation - SIMPLE VERSION
+    confirmDeleteBtn.addEventListener('click', function() {
+        if (!driverToDelete) return;
+        
+        // Construct the URL
+        const deleteUrl = `/admin/drivers/${driverToDelete.id}/delete`;
+        console.log('Making DELETE request to:', deleteUrl);
+        
+        fetch(deleteUrl, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        })
+        .then(async response => {
+            console.log('Response status:', response.status);
+            
+            try {
+                const data = await response.json();
+                
+                if (response.status === 200 && data.success) {
+                    alert(data.message || 'Driver deleted successfully');
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.reload();
+                    }
+                } else if (response.status === 404) {
+                    alert('Driver not found');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.message || data.error || 'Failed to delete driver'));
+                }
+            } catch (jsonError) {
+                // Handle non-JSON responses
+                if (response.status === 204) {
+                    alert('Driver deleted successfully');
+                    window.location.reload();
+                } else {
+                    const text = await response.text();
+                    alert(`Error: HTTP ${response.status} - ${text || 'Unknown error'}`);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('Network error: ' + error.message);
+        })
+        .finally(() => {
+            deleteModal.hide();
+        });
+    });
+
+    // Clear driverToDelete when modal is hidden
+    document.getElementById('deleteDriverModal').addEventListener('hidden.bs.modal', function() {
+        driverToDelete = null;
+    });
+</script>
+{% endblock %}

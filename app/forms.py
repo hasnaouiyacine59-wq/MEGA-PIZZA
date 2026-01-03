@@ -1,50 +1,60 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from app.models import User
+from wtforms import StringField, PasswordField, SelectField, TextAreaField, BooleanField
+from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional
+from wtforms import RadioField  # Make sure to import this
 
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=50)])
+    username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
-    remember = BooleanField('Remember Me')
-    submit = SubmitField('Login')
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=50)])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    phone_number = StringField('Phone Number', validators=[DataRequired(), Length(min=10, max=20)])
-    password = PasswordField('Password', validators=[
-        DataRequired(),
-        Length(min=8, message='Password must be at least 8 characters long')
-    ])
-    confirm_password = PasswordField('Confirm Password', validators=[
-        DataRequired(),
-        EqualTo('password', message='Passwords must match')
-    ])
-    role = SelectField('Role', choices=[
-        ('user', 'Customer'),
-        ('driver', 'Delivery Driver')
-    ], validators=[DataRequired()])
-    submit = SubmitField('Register')
+    phone = StringField('Phone', validators=[Optional()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
+    confirm_password = PasswordField('Confirm Password', 
+                                    validators=[DataRequired(), EqualTo('password')])
+class DriverRegistrationForm(FlaskForm):
+    # Account fields
+    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=50)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    phone = StringField('Phone', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     
-    def validate_username(self, username):
-        user = User.query.filter_by(username=username.data).first()
-        if user:
-            raise ValidationError('Username already exists. Please choose a different one.')
+    # Driver info
+    license_number = StringField('License Number', validators=[DataRequired()])
+    vehicle_type = SelectField('Vehicle Type', 
+                              choices=[
+                                  ('', 'Select Vehicle Type'),
+                                  ('car', 'Car'),
+                                  ('motorcycle', 'Motorcycle'),
+                                  ('scooter', 'Scooter'),
+                                  ('bicycle', 'Bicycle'),
+                                  ('van', 'Van'),
+                                  ('truck', 'Truck')
+                              ],
+                              validators=[DataRequired()])
+    vehicle_model = StringField('Vehicle Model', validators=[Optional()])
+    license_plate = StringField('License Plate', validators=[Optional()])
     
-    def validate_email(self, email):
-        user = User.query.filter_by(email=email.data).first()
-        if user:
-            raise ValidationError('Email already registered. Please use a different one.')
+    # Emergency contact
+    emergency_contact = StringField('Emergency Contact', validators=[Optional()])
+    emergency_phone = StringField('Emergency Phone', validators=[Optional()])
+    
+    # Status fields
+    is_available = BooleanField('Available', default=True)
+    is_on_shift = BooleanField('On Shift', default=False)
 
-class AdminCreateUserForm(RegistrationForm):
-    role = SelectField('Role', choices=[
-        ('admin', 'Administrator'),
-        ('manager', 'Manager'),
-        ('user', 'Customer'),
-        ('driver', 'Delivery Driver')
-    ], validators=[DataRequired()])
+
+class DriverEditForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=50)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    phone = StringField('Phone', validators=[Optional()])
+    password = PasswordField('New Password (leave blank to keep current)', 
+                            validators=[Optional(), Length(min=8)])
     
-    def validate_username(self, username):
-        # Admin can override username validation if needed
-        pass
+    # CHANGE THIS: Use RadioField instead of SelectField
+    status = RadioField('Status', 
+                       choices=[('active', 'Active'), ('inactive', 'Inactive')],
+                       validators=[DataRequired()],
+                       default='active')  # Optional: add default

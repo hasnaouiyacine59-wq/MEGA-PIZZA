@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Add Driver - Mega Pizza Admin{% endblock %}
+
+{% block styles %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px;
+    }
+    
+    .form-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .form-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary-color), #ffa500);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: white;
+        font-size: 2rem;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+    
+    .form-section {
+        border-top: 2px solid #f0f0f0;
+        padding-top: 25px;
+        margin-top: 25px;
+    }
+    
+    .section-title {
+        color: var(--primary-color);
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('admin.manage_drivers') }}">
+            <i class="fas fa-arrow-left me-2"></i>Add New Driver
+        </a>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="form-container">
+        <div class="form-header">
+            <div class="form-icon">
+                <i class="fas fa-truck"></i>
+            </div>
+            <h2>Add Delivery Driver</h2>
+            <p class="text-muted">Register a new driver for pizza delivery</p>
+        </div>
+        
+        <div class="form-card">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <!-- SECTION 1: Account Information -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control", placeholder="driver_username") }}
+                        <small class="text-muted">Unique identifier for login</small>
+                        {% if form.username.errors %}
+                            <div class="text-danger">{{ form.username.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control", placeholder="driver@email.com") }}
+                        {% if form.email.errors %}
+                            <div class="text-danger">{{ form.email.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.phone.label(class="form-label") }}
+                        {{ form.phone(class="form-control", placeholder="+1234567890") }}
+                        <small class="text-muted">For delivery coordination</small>
+                        {% if form.phone.errors %}
+                            <div class="text-danger">{{ form.phone.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control", placeholder="••••••••") }}
+                        <small class="text-muted">At least 8 characters</small>
+                        {% if form.password.errors %}
+                            <div class="text-danger">{{ form.password.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- SECTION 2: Driver Information -->
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-id-card me-2"></i>Driver Information</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.license_number.label(class="form-label") }}
+                            {{ form.license_number(class="form-control", placeholder="DRIVER12345") }}
+                            {% if form.license_number.errors %}
+                                <div class="text-danger">{{ form.license_number.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.vehicle_type.label(class="form-label") }}
+                            {{ form.vehicle_type(class="form-control") }}
+                            {% if form.vehicle_type.errors %}
+                                <div class="text-danger">{{ form.vehicle_type.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.vehicle_model.label(class="form-label") }}
+                            {{ form.vehicle_model(class="form-control", placeholder="Toyota Corolla 2022") }}
+                            {% if form.vehicle_model.errors %}
+                                <div class="text-danger">{{ form.vehicle_model.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.license_plate.label(class="form-label") }}
+                            {{ form.license_plate(class="form-control", placeholder="ABC-123") }}
+                            {% if form.license_plate.errors %}
+                                <div class="text-danger">{{ form.license_plate.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 3: Emergency Contact -->
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-phone-alt me-2"></i>Emergency Contact</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.emergency_contact.label(class="form-label") }}
+                            {{ form.emergency_contact(class="form-control", placeholder="John Doe") }}
+                            <small class="text-muted">Emergency contact person name</small>
+                            {% if form.emergency_contact.errors %}
+                                <div class="text-danger">{{ form.emergency_contact.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.emergency_phone.label(class="form-label") }}
+                            {{ form.emergency_phone(class="form-control", placeholder="+1234567890") }}
+                            <small class="text-muted">Emergency contact phone number</small>
+                            {% if form.emergency_phone.errors %}
+                                <div class="text-danger">{{ form.emergency_phone.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 4: Shift Information (Optional) -->
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-clock me-2"></i>Shift Information (Optional)</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Shift Start Time</label>
+                            <input type="time" class="form-control" name="shift_start" 
+                                   placeholder="09:00">
+                            <small class="text-muted">Default working hours start</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Shift End Time</label>
+                            <input type="time" class="form-control" name="shift_end" 
+                                   placeholder="17:00">
+                            <small class="text-muted">Default working hours end</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 5: Driver Status -->
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-toggle-on me-2"></i>Driver Status</h5>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_available" id="is_available" checked>
+                            <label class="form-check-label" for="is_available">
+                                Available for deliveries
+                            </label>
+                            <small class="text-muted d-block">Driver will appear as available in the system</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_on_shift" id="is_on_shift">
+                            <label class="form-check-label" for="is_on_shift">
+                                Currently on shift
+                            </label>
+                            <small class="text-muted d-block">Driver is actively working now</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submit Buttons -->
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save me-2"></i>Add Driver
+                    </button>
+                    <a href="{{ url_for('admin.manage_drivers') }}" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        <div class="mt-4 text-center text-muted">
+            <small>
+                <i class="fas fa-info-circle me-1"></i>
+                Driver will receive login credentials via email (if configured)
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}

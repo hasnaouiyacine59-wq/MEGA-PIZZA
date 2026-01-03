@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Mega Pizza - Best Pizza Delivery{% endblock %}
+
+{% block styles %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: white;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    
+    .hero-section {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        padding: 80px 20px;
+    }
+    
+    .hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(255, 107, 53, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 165, 0, 0.1) 0%, transparent 50%);
+        z-index: -1;
+    }
+    
+    .container-custom {
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    
+    .hero-content {
+        max-width: 600px;
+        animation: fadeInUp 1s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .hero-logo {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        animation: bounce 2s infinite;
+        display: inline-block;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        25% { transform: translateY(-10px) rotate(-5deg); }
+        75% { transform: translateY(-10px) rotate(5deg); }
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #ff6b35, #ffa500);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        margin-bottom: 30px;
+        color: rgba(255, 255, 255, 0.8);
+        max-width: 500px;
+    }
+    
+    .btn-hero {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 15px 30px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+    }
+    
+    .btn-hero:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(255, 107, 53, 0.4);
+        color: white;
+    }
+    
+    .btn-hero-secondary {
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        margin-left: 15px;
+    }
+    
+    .btn-hero-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .features {
+        display: flex;
+        gap: 30px;
+        margin-top: 60px;
+        flex-wrap: wrap;
+    }
+    
+    .feature-item {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 25px;
+        flex: 1;
+        min-width: 250px;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-item:hover {
+        transform: translateY(-10px);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary-color);
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+    }
+    
+    .feature-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .feature-text {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .floating-pizzas {
+        position: absolute;
+        right: 50px;
+        top: 50%;
+        transform: translateY(-50%);
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(-50%) rotate(0deg); }
+        50% { transform: translateY(-55%) rotate(10deg); }
+    }
+    
+    .pizza {
+        font-size: 8rem;
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+    }
+    
+    @media (max-width: 1200px) {
+        .floating-pizzas {
+            position: relative;
+            right: 0;
+            top: 0;
+            transform: none;
+            text-align: center;
+            margin-top: 50px;
+        }
+        
+        .hero-content {
+            text-align: center;
+            margin: 0 auto;
+        }
+        
+        .hero-title {
+            font-size: 2.8rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.2rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+        
+        .features {
+            flex-direction: column;
+        }
+        
+        .btn-hero {
+            width: 100%;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+        
+        .btn-hero-secondary {
+            margin-left: 0;
+        }
+        
+        .pizza {
+            font-size: 5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="container-custom">
+        <div class="hero-content">
+            <div class="hero-logo">🍕</div>
+            <h1 class="hero-title">Mega Pizza Delivery</h1>
+            <p class="hero-subtitle">
+                Order delicious, freshly baked pizzas delivered straight to your door. 
+                Experience the taste of perfection with our handcrafted recipes and 
+                premium ingredients.
+            </p>
+            
+            <div class="hero-buttons">
+                <a href="{{ url_for('auth.login') }}" class="btn-hero">
+                    <i class="fas fa-sign-in-alt"></i> Login to Order
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn-hero btn-hero-secondary">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </a>
+            </div>
+            
+            <div class="features">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="feature-title">Fast Delivery</h3>
+                    <p class="feature-text">Hot pizza delivered in 30 minutes or less</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3 class="feature-title">Premium Quality</h3>
+                    <p class="feature-text">Fresh ingredients, handcrafted with love</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h3 class="feature-title">Track Order</h3>
+                    <p class="feature-text">Real-time tracking of your delivery</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="floating-pizzas">
+            <div class="pizza">🍕</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add floating animation to feature items with delay
+    document.querySelectorAll('.feature-item').forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.2}s`;
+    });
+    
+    // Add scroll effect
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const hero = document.querySelector('.hero-section');
+        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+    });
+</script>
+{% endblock %}
