@@ -1,0 +1,404 @@
+<!-- templates/test/dashboard.html -->
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Virtual Order Testing - Mega Pizza Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">Virtual Order Testing</h1>
+            <p class="text-muted">Simulate Android app orders for testing</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{{ stats.total_test_orders }}</h5>
+                    <p class="card-text">Total Test Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{{ stats.today_test_orders }}</h5>
+                    <p class="card-text">Today's Test Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{{ stats.active_restaurants }}</h5>
+                    <p class="card-text">Active Restaurants</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">{{ stats.available_drivers }}</h5>
+                    <p class="card-text">Available Drivers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Controls -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Order Simulation Controls</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary" onclick="createTestOrder()">
+                                    <i class="fas fa-plus-circle"></i> Create Single Test Order
+                                </button>
+                                <small class="text-muted">Creates one random test order</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success" onclick="createBulkOrders()">
+                                    <i class="fas fa-bolt"></i> Create 5 Test Orders
+                                </button>
+                                <small class="text-muted">Creates multiple orders at once</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-danger" onclick="clearTestData()">
+                                    <i class="fas fa-trash"></i> Clear All Test Data
+                                </button>
+                                <small class="text-muted">Removes all test orders</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Custom Order Form -->
+                    <div class="row mt-4">
+                        <div class="col">
+                            <h6>Create Custom Test Order</h6>
+                            <form id="customOrderForm">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Delivery Type</label>
+                                        <select class="form-select" name="delivery_type">
+                                            <option value="delivery">Delivery</option>
+                                            <option value="pickup">Pickup</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Payment Method</label>
+                                        <select class="form-select" name="payment_method">
+                                            <option value="cash">Cash</option>
+                                            <option value="card">Credit Card</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Special Instructions</label>
+                                        <input type="text" class="form-control" name="special_instructions" placeholder="Optional">
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="button" class="btn btn-info" onclick="createCustomOrder()">
+                                            <i class="fas fa-mobile-alt"></i> Simulate Android Order
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Menu Items -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Available Test Menu Items</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Pizzas</h6>
+                            <div class="list-group">
+                                {% for pizza in test_pizzas %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ pizza.name }}</h6>
+                                        <small>${{ pizza.price }}</small>
+                                    </div>
+                                    <p class="mb-1 small">{{ pizza.description }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Sides</h6>
+                            <div class="list-group">
+                                {% for side in test_sides %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ side.name }}</h6>
+                                        <small>${{ side.price }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Drinks</h6>
+                            <div class="list-group">
+                                {% for drink in test_drinks %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ drink.name }}</h6>
+                                        <small>${{ drink.price }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Test Orders -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Test Orders</h5>
+                    <span class="badge bg-secondary">TEST MODE</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Restaurant</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td><code>{{ order.order_id }}</code></td>
+                                    <td>
+                                        {% if order.customer %}
+                                            {{ order.customer.name }}
+                                        {% else %}
+                                            Customer #{{ order.customer_id }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if order.restaurant %}
+                                            {{ order.restaurant.name }}
+                                        {% else %}
+                                            Restaurant #{{ order.restaurant_id }}
+                                        {% endif %}
+                                    </td>
+                                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 
+                                            'secondary' if order.order_status == 'pending' 
+                                            else 'info' if order.order_status == 'confirmed' 
+                                            else 'warning' if order.order_status == 'preparing' 
+                                            else 'success' if order.order_status == 'delivered' 
+                                            else 'primary' 
+                                        }}">
+                                            {{ order.order_status|replace('_', ' ')|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ order.created_at.strftime('%H:%M') }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="simulateOrderFlow('{{ order.order_id }}')">
+                                                <i class="fas fa-forward"></i> Next Step
+                                            </button>
+                                            <a href="{{ url_for('admin.view_order', order_id=order.order_id) }}" 
+                                               class="btn btn-outline-info">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No test orders yet. Create some using the buttons above.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for test functionality -->
+<script>
+function createTestOrder() {
+    fetch('/test/create-order', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', data.message);
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Failed to create order');
+    });
+}
+
+function createBulkOrders() {
+    if (!confirm('Create 5 test orders?')) return;
+    
+    fetch('/test/create-bulk-orders', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ count: 5 })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', data.message);
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Failed to create orders');
+    });
+}
+
+function createCustomOrder() {
+    const form = document.getElementById('customOrderForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('/test/create-order', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', data.message);
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Failed to create order');
+    });
+}
+
+function simulateOrderFlow(orderId) {
+    fetch(`/test/simulate-order-flow/${orderId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', data.message);
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification('warning', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Failed to update order');
+    });
+}
+
+function clearTestData() {
+    if (!confirm('WARNING: This will delete ALL test orders. Continue?')) return;
+    
+    fetch('/test/clear-test-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', data.message);
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Failed to clear data');
+    });
+}
+
+function showNotification(type, message) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '9999';
+    notification.style.minWidth = '300px';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,118 @@
+<!-- templates/test/android_simulator.html -->
+{% extends "base.html" %}
+
+{% block title %}Android App Simulator - Mega Pizza{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-mobile-alt"></i> Android App Simulator</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <img src="https://img.icons8.com/color/96/000000/android-os.png" alt="Android">
+                        <h5 class="mt-3">Mega Pizza Android App</h5>
+                        <p class="text-muted">Test API endpoints</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">API Endpoint</label>
+                        <div class="input-group">
+                            <span class="input-group-text">/test/api/</span>
+                            <input type="text" class="form-control" value="simulate-android-order" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Test Order Data</label>
+                        <textarea class="form-control" rows="10" id="requestData">
+{
+  "customer_id": 1,
+  "restaurant_id": 1,
+  "address_id": 1,
+  "delivery_type": "delivery",
+  "items": [
+    {
+      "menu_item_id": 1,
+      "quantity": 2,
+      "price": 12.99,
+      "special_instructions": "Extra cheese"
+    },
+    {
+      "menu_item_id": 5,
+      "quantity": 1,
+      "price": 3.99
+    }
+  ],
+  "subtotal": 29.97,
+  "tax": 2.40,
+  "delivery_fee": 2.99,
+  "total_amount": 35.36,
+  "payment_method": "card",
+  "special_instructions": "Ring doorbell twice"
+}
+                        </textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success btn-lg" onclick="sendAndroidRequest()">
+                            <i class="fas fa-paper-plane"></i> Send Order Request
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="testConnection()">
+                            <i class="fas fa-wifi"></i> Test Connection
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6>Response:</h6>
+                        <pre class="bg-light p-3 border rounded" id="responseArea">
+Waiting for response...
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function sendAndroidRequest() {
+    const requestData = document.getElementById('requestData').value;
+    const responseArea = document.getElementById('responseArea');
+    
+    responseArea.textContent = 'Sending request...';
+    
+    fetch('/test/api/simulate-android-order', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: requestData
+    })
+    .then(response => response.json())
+    .then(data => {
+        responseArea.textContent = JSON.stringify(data, null, 2);
+    })
+    .catch(error => {
+        responseArea.textContent = 'Error: ' + error;
+    });
+}
+
+function testConnection() {
+    const responseArea = document.getElementById('responseArea');
+    responseArea.textContent = 'Testing connection...';
+    
+    fetch('/test/test-api')
+    .then(response => response.json())
+    .then(data => {
+        responseArea.textContent = JSON.stringify(data, null, 2);
+    })
+    .catch(error => {
+        responseArea.textContent = 'Error: ' + error;
+    });
+}
+</script>
+{% endblock %}
