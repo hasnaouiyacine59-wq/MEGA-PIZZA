@@ -4,6 +4,7 @@ from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 import os
 
+# Create extensions first
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
@@ -25,7 +26,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['DEBUG'] = os.environ.get('FLASK_ENV') != 'production'
     
-    # Initialize extensions
+    # Initialize extensions with app
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
@@ -34,12 +35,23 @@ def create_app():
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'info'
     
-    # Import models here to avoid circular imports
-    from .models import User
-    
+    # User loader - must be defined after app context
     @login_manager.user_loader
     def load_user(user_id):
+        from .models import User  # Import inside function to avoid circular import
         return User.query.get(int(user_id))
+    
+    # Context processor for has_endpoint
+    @app.context_processor
+    def utility_processor():
+        from flask import url_for
+        def has_endpoint(endpoint):
+            try:
+                url_for(endpoint)
+                return True
+            except:
+                return False
+        return dict(has_endpoint=has_endpoint)
     
     # Register blueprints
     from .auth import auth_bp

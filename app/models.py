@@ -270,6 +270,9 @@ class Order(db.Model):
     delivery_fee = db.Column(db.Numeric(10, 2), default=0.00)
     discount = db.Column(db.Numeric(10, 2), default=0.00)
     total_amount = db.Column(db.Numeric(10, 2), default=0.00, nullable=False)
+    @property
+    def total_amount_formatted(self):
+        return f"${self.total_amount:.2f}"
     
     # Payment
     payment_method = db.Column(db.String(20))
@@ -331,22 +334,59 @@ class OrderItem(db.Model):
 # ============================================
 # ORDER STATUS HISTORY MODEL
 # ============================================
+
+# ============================================
+# ORDER STATUS HISTORY MODEL (UPDATED TO MATCH DATABASE)
+# ============================================
 class OrderStatusHistory(db.Model):
     __tablename__ = 'order_status_history'
     
     history_id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.String(30), db.ForeignKey('orders.order_id'), nullable=False)
+    
+    # Status Information
     old_status = db.Column(db.String(20))
     new_status = db.Column(db.String(20), nullable=False)
-    changed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Actor Information
     changed_by = db.Column(db.Integer, db.ForeignKey('users.user_id'))
+    actor_type = db.Column(db.String(20), default='system')
+    
+    # Delivery Specific
+    driver_id = db.Column(db.Integer, db.ForeignKey('drivers.driver_id'))
+    location_lat = db.Column(db.Numeric(10, 8))
+    location_lng = db.Column(db.Numeric(11, 8))
+    estimated_arrival = db.Column(db.DateTime)
+    
+    # Customer Communication
+    customer_notified = db.Column(db.Boolean, default=False)
+    notification_method = db.Column(db.String(20))
+    
+    # Notes & Details
+    public_notes = db.Column(db.Text)  # ✅ This is what you should use instead of 'notes'
+    internal_notes = db.Column(db.Text)
+    reason_code = db.Column(db.String(50))
+    
+    # Timestamps
+    changed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    effective_from = db.Column(db.DateTime, default=datetime.utcnow)
+    effective_until = db.Column(db.DateTime)
+    
+    # Technical Audit
+    ip_address = db.Column(db.String(45))  # INET in PostgreSQL
+    user_agent = db.Column(db.Text)
+    source = db.Column(db.String(50), default='web')
+    
+    # Performance Metrics
+    time_in_previous_status = db.Column(db.Integer)
+    predicted_time_in_status = db.Column(db.Integer)
     
     # Relationships
     changer = db.relationship('User', backref='status_changes', lazy=True)
+    driver = db.relationship('Driver', backref='status_history', lazy=True)
     
     def __repr__(self):
         return f'<OrderStatusHistory {self.old_status} -> {self.new_status}>'
-
 
 # ============================================
 # AUTHENTICATION MODELS

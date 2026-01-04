@@ -1,0 +1,196 @@
+<!-- templates/admin/components/top_navigation.html -->
+<!-- Top Navigation -->
+<nav class="navbar navbar-expand-lg navbar-admin">
+    <div class="container">
+        <!-- Left Side: Brand -->
+        <a class="navbar-brand" href="{{ url_for('admin.dashboard') }}">
+            <i class="fas fa-pizza-slice me-2"></i>
+            Mega Pizza Admin
+            {% if page_title %}
+            <span class="page-title-indicator">
+                <i class="fas fa-chevron-right ms-3 me-1"></i>
+                <span class="page-title">{{ page_title }}</span>
+            </span>
+            {% endif %}
+        </a>
+        
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon">
+                <i class="fas fa-bars text-white"></i>
+            </span>
+        </button>
+        
+        <!-- Main Navigation -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" 
+                       href="{{ url_for('admin.dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.manage_drivers' %}active{% endif %}" 
+                       href="{{ url_for('admin.manage_drivers') }}">
+                        <i class="fas fa-truck me-1"></i> Drivers
+                        {% if driver_stats and driver_stats.pending_drivers > 0 %}
+                        <span class="badge bg-danger ms-1">{{ driver_stats.pending_drivers }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.manage_orders' %}active{% endif %}" 
+                       href="{{ url_for('admin.manage_orders') }}">
+                        <i class="fas fa-shopping-cart me-1"></i> Orders
+                        {% if order_stats and order_stats.pending_orders > 0 %}
+                        <span class="badge bg-warning ms-1">{{ order_stats.pending_orders }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.manage_restaurants' %}active{% endif %}" 
+                       href="{{ url_for('admin.manage_restaurants') }}">
+                        <i class="fas fa-store me-1"></i> Restaurants
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.manage_customers' %}active{% endif %}" 
+                       href="{{ url_for('admin.manage_customers') }}">
+                        <i class="fas fa-users me-1"></i> Customers
+                    </a>
+                </li>
+                
+                <!-- More menu items as needed -->
+                
+                <!-- User Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ url_for('admin.profile') }}">
+                            <i class="fas fa-user me-2"></i> Profile
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin.settings') }}">
+                            <i class="fas fa-cog me-2"></i> Settings
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<style>
+    /* Navigation Styles */
+    .navbar-admin {
+        background: var(--railway-card) !important;
+        border-bottom: 1px solid var(--railway-border);
+        padding: 1rem 0;
+    }
+    
+    .navbar-brand {
+        color: var(--railway-text) !important;
+        font-weight: 600;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .page-title-indicator {
+        font-size: 1rem;
+        color: var(--railway-text-secondary);
+        font-weight: normal;
+        margin-left: 1rem;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .page-title-indicator i {
+        font-size: 0.8rem;
+    }
+    
+    .nav-link {
+        color: var(--railway-text-secondary) !important;
+        transition: color 0.2s ease;
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+    
+    .nav-link:hover,
+    .nav-link.active {
+        color: var(--railway-text) !important;
+    }
+    
+    .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--railway-primary);
+    }
+    
+    .dropdown-menu {
+        background: var(--railway-card);
+        border: 1px solid var(--railway-border);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+    
+    .dropdown-item {
+        color: var(--railway-text-secondary);
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .dropdown-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--railway-text);
+    }
+    
+    .navbar-toggler {
+        border: 1px solid var(--railway-border);
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .navbar-toggler:focus {
+        box-shadow: none;
+    }
+    
+    .navbar-toggler-icon i {
+        font-size: 1.5rem;
+    }
+    
+    /* Badge styles */
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .page-title-indicator {
+            display: none;
+        }
+        
+        .navbar-brand {
+            font-size: 1.2rem;
+        }
+        
+        .nav-link.active::after {
+            display: none;
+        }
+    }
+</style>

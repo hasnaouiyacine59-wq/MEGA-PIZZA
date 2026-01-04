@@ -303,12 +303,12 @@ def view_driver(driver_id):
 # ============================================
 # RESTAURANT MANAGEMENT
 # ============================================
-@admin_bp.route('/restaurants')
-@login_required
-@admin_required
-def manage_restaurants():
-    restaurants = Restaurant.query.all()
-    return render_template('admin/manage_restaurants.html', restaurants=restaurants)
+# @admin_bp.route('/restaurants')
+# @login_required
+# @admin_required
+# def manage_restaurants():
+#     restaurants = Restaurant.query.all()
+#     return render_template('admin/manage_restaurants.html', restaurants=restaurants)
 
 
 # ============================================
@@ -462,7 +462,6 @@ def edit_order(order_id):
                          drivers=drivers,
                          addresses=addresses)
 
-
 @admin_bp.route('/orders/<string:order_id>/update-status', methods=['POST'])
 @login_required
 @admin_required
@@ -474,7 +473,7 @@ def update_order_status(order_id):
         old_status = order.order_status
         new_status = data.get('new_status')
         driver_id = data.get('driver_id')
-        notes = data.get('notes')
+        notes = data.get('notes')  # This will go into public_notes
         
         if not new_status:
             return jsonify({'success': False, 'message': 'No status provided'})
@@ -487,9 +486,7 @@ def update_order_status(order_id):
             driver = Driver.query.get(driver_id)
             if driver:
                 order.driver_id = driver.driver_id
-                driver.is_available = False  # Mark driver as busy
-                
-                # Update driver stats
+                driver.is_available = False
                 driver.total_deliveries = (driver.total_deliveries or 0) + 1
         
         # Update timestamps
@@ -498,13 +495,15 @@ def update_order_status(order_id):
         elif new_status == 'out_for_delivery':
             order.estimated_delivery = datetime.utcnow() + timedelta(minutes=30)
         
-        # Create status history
+        # Create status history - use public_notes instead of notes
         history = OrderStatusHistory(
             order_id=order.order_id,
             old_status=old_status,
             new_status=new_status,
             changed_by=current_user.user_id,
-            notes=notes
+            public_notes=notes,  # ✅ Use public_notes here
+            actor_type='admin',  # ✅ Add actor_type
+            source='admin_panel'  # ✅ Add source
         )
         db.session.add(history)
         
@@ -515,7 +514,6 @@ def update_order_status(order_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)})
-
 
 @admin_bp.route('/orders/<string:order_id>/cancel', methods=['POST'])
 @login_required
@@ -529,13 +527,16 @@ def cancel_order(order_id):
         old_status = order.order_status
         order.order_status = 'cancelled'
         
-        # Create status history
+        # Create status history - use public_notes instead of notes
         history = OrderStatusHistory(
             order_id=order.order_id,
             old_status=old_status,
             new_status='cancelled',
             changed_by=current_user.user_id,
-            notes=f"Cancellation: {data.get('reason', 'No reason provided')}. {data.get('notes', '')}"
+            public_notes=f"Cancellation: {data.get('reason', 'No reason provided')}. {data.get('notes', '')}",  # ✅ Use public_notes
+            actor_type='admin',  # ✅ Add actor_type
+            source='admin_panel',  # ✅ Add source
+            reason_code='admin_cancelled'  # ✅ Add reason_code
         )
         db.session.add(history)
         
@@ -613,40 +614,40 @@ def resend_receipt(order_id):
 # ============================================
 # USER MANAGEMENT
 # ============================================
-@admin_bp.route('/users')
-@login_required
-@admin_required
-def manage_users():
-    # Get filter parameters
-    role = request.args.get('role', 'all')
-    status = request.args.get('status', 'all')
+# @admin_bp.route('/users')
+# @login_required
+# @admin_required
+# def manage_users():
+#     # Get filter parameters
+#     role = request.args.get('role', 'all')
+#     status = request.args.get('status', 'all')
     
-    # Build query
-    query = User.query
+#     # Build query
+#     query = User.query
     
-    if role != 'all':
-        query = query.filter_by(role=role)
+#     if role != 'all':
+#         query = query.filter_by(role=role)
     
-    if status != 'all':
-        is_active = status == 'active'
-        query = query.filter_by(is_active=is_active)
+#     if status != 'all':
+#         is_active = status == 'active'
+#         query = query.filter_by(is_active=is_active)
     
-    users = query.order_by(User.created_at.desc()).all()
+#     users = query.order_by(User.created_at.desc()).all()
     
-    # Get statistics
-    total_users = User.query.count()
-    active_users = User.query.filter_by(is_active=True).count()
-    admin_users = User.query.filter_by(role='admin').count()
-    driver_users = User.query.filter_by(role='driver').count()
+#     # Get statistics
+#     total_users = User.query.count()
+#     active_users = User.query.filter_by(is_active=True).count()
+#     admin_users = User.query.filter_by(role='admin').count()
+#     driver_users = User.query.filter_by(role='driver').count()
     
-    return render_template('admin/manage_users.html',
-                         users=users,
-                         total_users=total_users,
-                         active_users=active_users,
-                         admin_users=admin_users,
-                         driver_users=driver_users,
-                         current_role=role,
-                         current_status=status)
+#     return render_template('admin/manage_users.html',
+#                          users=users,
+#                          total_users=total_users,
+#                          active_users=active_users,
+#                          admin_users=admin_users,
+#                          driver_users=driver_users,
+#                          current_role=role,
+#                          current_status=status)
 
 
 # ============================================
@@ -684,6 +685,18 @@ def system_health():
     
     return render_template('admin/system_health.html', stats=stats)
 
+# Add this to a debug route in admin.py
+@admin_bp.route('/debug-schema')
+def debug_schema():
+    from sqlalchemy.inspection import inspect
+    
+    inspector = inspect(OrderStatusHistory)
+    columns = [c.name for c in inspector.columns]
+    
+    return jsonify({
+        'order_status_history_columns': columns,
+        'model_attributes': [attr for attr in dir(OrderStatusHistory) if not attr.startswith('_')]
+    })
 
 # ============================================
 # ADMIN UTILITIES
@@ -710,3 +723,672 @@ def create_admin():
         flash('Admin user created successfully! Username: admin, Password: Admin@123', 'success')
     
     return redirect(url_for('auth.login'))
+# ============================================
+# MISSING PLACEHOLDER ROUTES
+# ============================================
+
+# Customer management placeholder
+@admin_bp.route('/customers')
+@login_required
+@admin_required
+def manage_customers():
+    # Get filter parameters
+    search = request.args.get('search', '')
+    
+    # Build query
+    query = Customer.query
+    
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (Customer.name.ilike(search_term)) |
+            (Customer.phone_number.ilike(search_term)) |
+            (Customer.email.ilike(search_term)) |
+            (Customer.customer_id.ilike(search_term))
+        )
+    
+    customers = query.order_by(Customer.created_at.desc()).all()
+    
+    # Get statistics
+    total_customers = Customer.query.count()
+    customers_with_orders = db.session.query(func.count(func.distinct(Order.customer_id))).scalar()
+    recent_customers = Customer.query.order_by(Customer.created_at.desc()).limit(5).all()
+    
+    return render_template('admin/manage_customers.html',
+                         customers=customers,
+                         total_customers=total_customers,
+                         customers_with_orders=customers_with_orders,
+                         recent_customers=recent_customers,
+                         search=search)
+
+# Menu items management placeholder
+@admin_bp.route('/menu-items')
+@login_required
+@admin_required
+def manage_menu_items():
+    # Get filter parameters
+    restaurant_id = request.args.get('restaurant_id', 'all')
+    category = request.args.get('category', 'all')
+    
+    # Build query
+    query = MenuItem.query
+    
+    if restaurant_id != 'all':
+        query = query.filter_by(restaurant_id=restaurant_id)
+    
+    if category != 'all':
+        query = query.filter_by(category=category)
+    
+    menu_items = query.order_by(MenuItem.created_at.desc()).all()
+    
+    # Get all restaurants for filter dropdown
+    restaurants = Restaurant.query.all()
+    
+    # Get unique categories
+    categories = db.session.query(MenuItem.category).distinct().order_by(MenuItem.category).all()
+    categories = [c[0] for c in categories if c[0]]
+    
+    # Get statistics
+    total_items = MenuItem.query.count()
+    available_items = MenuItem.query.filter_by(is_available=True).count()
+    
+    return render_template('admin/manage_menu_items.html',
+                         menu_items=menu_items,
+                         restaurants=restaurants,
+                         categories=categories,
+                         total_items=total_items,
+                         available_items=available_items,
+                         current_restaurant=restaurant_id,
+                         current_category=category)
+
+# Categories management placeholder
+@admin_bp.route('/categories')
+@login_required
+@admin_required
+def manage_categories():
+    # Get all unique categories from menu items
+    categories = db.session.query(
+        MenuItem.category,
+        func.count(MenuItem.item_id).label('item_count'),
+        func.sum(MenuItem.price).label('total_value')
+    ).group_by(MenuItem.category)\
+     .order_by(MenuItem.category)\
+     .all()
+    
+    # Format categories
+    category_list = []
+    for cat in categories:
+        category_list.append({
+            'name': cat[0] or 'Uncategorized',
+            'item_count': cat[1],
+            'total_value': cat[2] or 0
+        })
+    
+    return render_template('admin/manage_categories.html',
+                         categories=category_list)
+
+# Reviews management placeholder
+@admin_bp.route('/reviews')
+@login_required
+@admin_required
+def manage_reviews():
+    # Since we don't have a Review model yet, return placeholder
+    return render_template('admin/manage_reviews.html',
+                         message="Reviews management coming soon!",
+                         reviews=[])
+
+# Analytics placeholder
+@admin_bp.route('/analytics')
+@login_required
+@admin_required
+def analytics():
+    # Get basic analytics
+    total_orders = Order.query.count()
+    total_revenue = db.session.query(func.sum(Order.total_amount)).scalar() or 0
+    total_customers = Customer.query.count()
+    avg_order_value = total_revenue / total_orders if total_orders > 0 else 0
+    
+    # Get orders by status
+    orders_by_status = db.session.query(
+        Order.order_status,
+        func.count(Order.order_id).label('count')
+    ).group_by(Order.order_status).all()
+    
+    # Get orders by payment method
+    orders_by_payment = db.session.query(
+        Order.payment_method,
+        func.count(Order.order_id).label('count'),
+        func.sum(Order.total_amount).label('revenue')
+    ).filter(Order.payment_method.isnot(None))\
+     .group_by(Order.payment_method).all()
+    
+    return render_template('admin/analytics.html',
+                         total_orders=total_orders,
+                         total_revenue=total_revenue,
+                         total_customers=total_customers,
+                         avg_order_value=avg_order_value,
+                         orders_by_status=orders_by_status,
+                         orders_by_payment=orders_by_payment)
+
+# Revenue report placeholder
+@admin_bp.route('/revenue')
+@login_required
+@admin_required
+def revenue_report():
+    # Get revenue by month for last 6 months
+    six_months_ago = datetime.utcnow() - timedelta(days=180)
+    
+    monthly_revenue = db.session.query(
+        func.date_trunc('month', Order.created_at).label('month'),
+        func.sum(Order.total_amount).label('revenue'),
+        func.count(Order.order_id).label('orders')
+    ).filter(Order.created_at >= six_months_ago)\
+     .group_by(func.date_trunc('month', Order.created_at))\
+     .order_by(func.date_trunc('month', Order.created_at).desc())\
+     .all()
+    
+    # Get top restaurants by revenue
+    top_restaurants = db.session.query(
+        Restaurant.name,
+        func.sum(Order.total_amount).label('revenue'),
+        func.count(Order.order_id).label('orders')
+    ).join(Order, Restaurant.restaurant_id == Order.restaurant_id)\
+     .group_by(Restaurant.restaurant_id, Restaurant.name)\
+     .order_by(func.sum(Order.total_amount).desc())\
+     .limit(10)\
+     .all()
+    
+    return render_template('admin/revenue_report.html',
+                         monthly_revenue=monthly_revenue,
+                         top_restaurants=top_restaurants)
+
+# # Sales report placeholder
+# @admin_bp.route('/sales-report')
+# @login_required
+# @admin_required
+# def sales_report():
+#     # Get sales data
+#     today = datetime.utcnow().date()
+#     yesterday = today - timedelta(days=1)
+#     this_month_start = today.replace(day=1)
+#     last_month_start = (this_month_start - timedelta(days=1)).replace(day=1)
+    
+#     # Today's sales
+#     today_sales = db.session.query(func.sum(Order.total_amount))\
+#         .filter(db.func.date(Order.created_at) == today)\
+#         .scalar() or 0
+    
+#     # Yesterday's sales
+#     yesterday_sales = db.session.query(func.sum(Order.total_amount))\
+#         .filter(db.func.date(Order.created_at) == yesterday)\
+#         .scalar() or 0
+    
+#     # This month's sales
+#     month_sales = db.session.query(func.sum(Order.total_amount))\
+#         .filter(db.func.date(Order.created_at) >= this_month_start)\
+#         .scalar() or 0
+    
+#     # Last month's sales
+#     last_month_sales = db.session.query(func.sum(Order.total_amount))\
+#         .filter(
+#             db.func.date(Order.created_at) >= last_month_start,
+#             db.func.date(Order.created_at) < this_month_start
+#         )\
+#         .scalar() or 0
+    
+#     # Top selling items
+#     top_items = db.session.query(
+#         MenuItem.name,
+#         MenuItem.category,
+#         func.sum(OrderItem.quantity).label('total_quantity'),
+#         func.sum(OrderItem.quantity * OrderItem.unit_price).label('total_revenue')
+#     ).join(OrderItem, OrderItem.item_id == MenuItem.item_id)\
+#      .group_by(MenuItem.item_id, MenuItem.name, MenuItem.category)\
+#      .order_by(func.sum(OrderItem.quantity).desc())\
+#      .limit(10)\
+#      .all()
+    
+#     return render_template('admin/sales_report.html',
+#                          today_sales=today_sales,
+#                          yesterday_sales=yesterday_sales,
+#                          month_sales=month_sales,
+#                          last_month_sales=last_month_sales,
+#                          top_items=top_items)
+
+# Settings placeholder
+@admin_bp.route('/settings')
+@login_required
+@admin_required
+def settings():
+    # Get system settings (placeholder)
+    system_settings = {
+        'app_name': 'Mega Pizza Delivery System',
+        'version': '1.0.0',
+        'environment': current_app.config.get('ENV', 'production'),
+        'debug_mode': current_app.debug,
+        'database_url': current_app.config.get('SQLALCHEMY_DATABASE_URI', '').split('@')[-1] if '@' in current_app.config.get('SQLALCHEMY_DATABASE_URI', '') else 'Local',
+        'secret_key_set': bool(current_app.config.get('SECRET_KEY')),
+        'timezone': 'UTC'
+    }
+    
+    return render_template('admin/settings.html',
+                         system_settings=system_settings)
+
+# Android simulator redirect placeholder
+@admin_bp.route('/android-simulator')
+@login_required
+@admin_required
+def android_simulator():
+    """Redirect to test android simulator"""
+    return redirect(url_for('test.android_simulator'))
+
+# Restaurant management placeholder (already exists, but adding for completeness)
+@admin_bp.route('/restaurants')
+@login_required
+@admin_required
+def manage_restaurants():
+    restaurants = Restaurant.query.all()
+    
+    # Get restaurant statistics
+    restaurants_with_stats = []
+    for restaurant in restaurants:
+        orders_count = Order.query.filter_by(restaurant_id=restaurant.restaurant_id).count()
+        total_revenue = db.session.query(func.sum(Order.total_amount))\
+            .filter(Order.restaurant_id == restaurant.restaurant_id)\
+            .scalar() or 0
+        
+        restaurants_with_stats.append({
+            'restaurant': restaurant,
+            'orders_count': orders_count,
+            'total_revenue': total_revenue,
+            'is_active': restaurant.is_active,
+            'is_open': restaurant.is_open
+        })
+    
+    return render_template('admin/manage_restaurants.html',
+                         restaurants=restaurants_with_stats)
+
+# Add restaurant placeholder
+@admin_bp.route('/restaurants/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_restaurant():
+    if request.method == 'POST':
+        # Process restaurant addition
+        flash('Restaurant added successfully! (Placeholder)', 'success')
+        return redirect(url_for('admin.manage_restaurants'))
+    
+    return render_template('admin/add_restaurant.html')
+
+# Edit restaurant placeholder
+@admin_bp.route('/restaurants/<string:restaurant_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_restaurant(restaurant_id):
+    restaurant = Restaurant.query.get_or_404(restaurant_id)
+    
+    if request.method == 'POST':
+        # Process restaurant edit
+        flash(f'Restaurant {restaurant.name} updated successfully! (Placeholder)', 'success')
+        return redirect(url_for('admin.manage_restaurants'))
+    
+    return render_template('admin/edit_restaurant.html', restaurant=restaurant)
+
+# User profile placeholder
+@admin_bp.route('/profile')
+@login_required
+@admin_required
+def profile():
+    return render_template('admin/profile.html', user=current_user)
+
+# Admin activity log placeholder
+@admin_bp.route('/activity-log')
+@login_required
+@admin_required
+def activity_log():
+    # Get recent admin activities (placeholder - would normally use an ActivityLog model)
+    activities = [
+        {'action': 'Login', 'user': 'admin', 'timestamp': datetime.now(), 'details': 'User logged in'},
+        {'action': 'Order Update', 'user': 'admin', 'timestamp': datetime.now() - timedelta(hours=1), 'details': 'Updated order #ORD-001'},
+        {'action': 'Driver Added', 'user': 'admin', 'timestamp': datetime.now() - timedelta(hours=2), 'details': 'Added new driver: John Doe'},
+    ]
+    
+    return render_template('admin/activity_log.html', activities=activities)
+
+# Database backup placeholder
+@admin_bp.route('/database/backup')
+@login_required
+@admin_required
+def database_backup():
+    flash('Database backup initiated (Placeholder - implement actual backup logic)', 'info')
+    return redirect(url_for('admin.system_health'))
+
+# Email notifications placeholder
+@admin_bp.route('/notifications')
+@login_required
+@admin_required
+def manage_notifications():
+    return render_template('admin/manage_notifications.html',
+                         message="Email notifications management coming soon!")
+
+# Export data placeholder
+@admin_bp.route('/export/<string:data_type>')
+@login_required
+@admin_required
+def export_data(data_type):
+    flash(f'Exporting {data_type} data (Placeholder - implement actual export logic)', 'info')
+    
+    if data_type == 'orders':
+        return redirect(url_for('admin.manage_orders'))
+    elif data_type == 'customers':
+        return redirect(url_for('admin.manage_customers'))
+    elif data_type == 'drivers':
+        return redirect(url_for('admin.manage_drivers'))
+    else:
+        return redirect(url_for('admin.dashboard'))
+
+# Import data placeholder
+@admin_bp.route('/import', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def import_data():
+    if request.method == 'POST':
+        flash('Data import initiated (Placeholder - implement actual import logic)', 'info')
+        return redirect(url_for('admin.dashboard'))
+    
+    return render_template('admin/import_data.html')
+
+
+@admin_bp.route('/sales-report')
+@login_required
+@admin_required
+def sales_report():
+    """Sales report page"""
+    from datetime import datetime, timedelta
+    
+    # Get filter parameters
+    period = request.args.get('period', 'month')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    # Calculate date range based on period
+    today = datetime.today().date()
+    
+    if period == 'today':
+        start_date = today
+        end_date = today
+    elif period == 'yesterday':
+        start_date = today - timedelta(days=1)
+        end_date = start_date
+    elif period == 'week':
+        start_date = today - timedelta(days=today.weekday())
+        end_date = today
+    elif period == 'month':
+        start_date = today.replace(day=1)
+        end_date = today
+    elif period == 'quarter':
+        current_quarter = (today.month - 1) // 3 + 1
+        start_date = datetime(today.year, 3 * current_quarter - 2, 1).date()
+        end_date = today
+    elif period == 'year':
+        start_date = today.replace(month=1, day=1)
+        end_date = today
+    elif period == 'custom' and start_date and end_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    else:
+        # Default to this month
+        start_date = today.replace(day=1)
+        end_date = today
+    
+    # Query orders in date range
+    orders = Order.query.filter(
+        Order.created_at >= start_date,
+        Order.created_at <= end_date + timedelta(days=1)
+    ).order_by(Order.created_at.desc()).all()
+    
+    # Calculate summary statistics
+    total_revenue = sum(order.total_amount for order in orders)
+    total_orders = len(orders)
+    completed_orders = len([o for o in orders if o.order_status == 'delivered'])
+    average_order_value = total_revenue / total_orders if total_orders > 0 else 0
+    
+    # Calculate totals
+    totals = {
+        'subtotal': sum(order.subtotal for order in orders),
+        'tax': sum(order.tax for order in orders),
+        'delivery': sum(order.delivery_fee for order in orders),
+        'total': total_revenue
+    }
+    
+    # Get restaurant stats (placeholder)
+    restaurant_stats = []
+    restaurants = Restaurant.query.all()
+    for restaurant in restaurants:
+        restaurant_orders = [o for o in orders if o.restaurant_id == restaurant.restaurant_id]
+        restaurant_stats.append({
+            'name': restaurant.name,
+            'revenue': sum(o.total_amount for o in restaurant_orders),
+            'orders': len(restaurant_orders)
+        })
+    
+    # Sort restaurants by revenue
+    restaurant_stats.sort(key=lambda x: x['revenue'], reverse=True)
+    
+    # Peak hours (placeholder)
+    peak_hours = []
+    for hour in range(8, 22):  # 8 AM to 10 PM
+        hour_orders = [o for o in orders if o.created_at.hour == hour]
+        if hour_orders:
+            peak_hours.append({
+                'hour': hour,
+                'order_count': len(hour_orders),
+                'revenue': sum(o.total_amount for o in hour_orders)
+            })
+    
+    # Sort peak hours
+    peak_hours.sort(key=lambda x: x['order_count'], reverse=True)
+    
+    # Delivery stats (placeholder)
+    delivery_stats = {
+        'delivery_count': len([o for o in orders if o.delivery_type == 'delivery']),
+        'pickup_count': len([o for o in orders if o.delivery_type == 'pickup']),
+        'avg_delivery_time': 35,  # Placeholder
+        'on_time_rate': 92  # Placeholder
+    }
+    
+    summary = {
+        'total_revenue': total_revenue,
+        'total_orders': total_orders,
+        'completed_orders': completed_orders,
+        'average_order_value': average_order_value
+    }
+    
+    return render_template('admin/sales_report.html',
+                         orders=orders,
+                         summary=summary,
+                         totals=totals,
+                         restaurant_stats=restaurant_stats[:5],  # Top 5
+                         peak_hours=peak_hours[:5],  # Top 5
+                         delivery_stats=delivery_stats,
+                         period=period,
+                         start_date=start_date,
+                         end_date=end_date)
+
+@admin_bp.route('/manage-users')
+@login_required
+@admin_required
+def manage_users():
+    """Manage users page"""
+    # Get all users
+    users = User.query.order_by(User.created_at.desc()).all()
+    
+    # Calculate statistics
+    stats = {
+        'total_users': User.query.count(),
+        'total_customers': User.query.filter_by(role='user').count(),
+        'total_drivers': User.query.filter_by(role='driver').count(),
+        'total_admins': User.query.filter_by(role='admin').count(),
+        'total_restaurants': User.query.filter_by(role='restaurant').count()
+    }
+    
+    return render_template('admin/manage_users.html', 
+                         users=users, 
+                         stats=stats)
+
+# @admin_bp.route('/user/<int:user_id>')
+# @login_required
+# @admin_required
+# def view_user(user_id):
+#     """View user details"""
+#     user = User.query.get_or_404(user_id)
+#     return render_template('admin/view_user.html', user=user)
+
+# @admin_bp.route('/user/edit/<int:user_id>', methods=['GET', 'POST'])
+# @login_required
+# @admin_required
+# def edit_user(user_id):
+#     """Edit user"""
+#     user = User.query.get_or_404(user_id)
+    
+#     if request.method == 'POST':
+#         # Update user logic here
+#         pass
+    
+#     return render_template('admin/edit_user.html', user=user)
+
+@admin_bp.route('/user/add', methods=['POST'])
+@login_required
+@admin_required
+def add_user():
+    """Add new user"""
+    try:
+        # Get form data
+        username = request.form.get('username')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        role = request.form.get('role')
+        password = request.form.get('password')
+        is_active = request.form.get('is_active') == 'on'
+        
+        # Create user
+        user = User(
+            username=username,
+            email=email,
+            phone_number=phone,
+            role=role,
+            is_active=is_active
+        )
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('User created successfully!', 'success')
+        return redirect(url_for('admin.manage_users'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error creating user: {str(e)}', 'danger')
+        return redirect(url_for('admin.manage_users'))
+
+@admin_bp.route('/user/delete/<int:user_id>')
+@login_required
+@admin_required
+def delete_user(user_id):
+    """Delete user"""
+    try:
+        user = User.query.get_or_404(user_id)
+        
+        # Prevent deleting yourself
+        if user.user_id == current_user.user_id:
+            flash('You cannot delete your own account!', 'danger')
+            return redirect(url_for('admin.manage_users'))
+        
+        db.session.delete(user)
+        db.session.commit()
+        
+        flash('User deleted successfully!', 'success')
+        return redirect(url_for('admin.manage_users'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting user: {str(e)}', 'danger')
+        return redirect(url_for('admin.manage_users'))
+
+@admin_bp.route('/user/<int:user_id>')
+@login_required
+@admin_required
+def view_user(user_id):
+    """View user details"""
+    user = User.query.get_or_404(user_id)
+    
+    # Get associated profiles
+    customer = None
+    driver = None
+    restaurant = None
+    
+    if user.role == 'user':
+        customer = Customer.query.filter_by(user_id=user.user_id).first()
+    elif user.role == 'driver':
+        driver = Driver.query.filter_by(user_id=user.user_id).first()
+    elif user.role == 'restaurant':
+        restaurant = Restaurant.query.filter_by(user_id=user.user_id).first()
+    
+    return render_template('admin/view_user.html', 
+                         user=user, 
+                         customer=customer,
+                         driver=driver,
+                         restaurant=restaurant)
+
+@admin_bp.route('/user/edit/<int:user_id>', methods=['GET'])
+@login_required
+@admin_required
+def edit_user(user_id):
+    """Edit user page"""
+    user = User.query.get_or_404(user_id)
+    
+    # Get associated profiles
+    customer = None
+    driver = None
+    
+    if user.role == 'user':
+        customer = Customer.query.filter_by(user_id=user.user_id).first()
+    elif user.role == 'driver':
+        driver = Driver.query.filter_by(user_id=user.user_id).first()
+    
+    return render_template('admin/edit_user.html', 
+                         user=user, 
+                         customer=customer,
+                         driver=driver)
+
+@admin_bp.route('/user/update/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def update_user(user_id):
+    """Update user data"""
+    try:
+        user = User.query.get_or_404(user_id)
+        
+        # Get form data
+        user.username = request.form.get('username')
+        user.email = request.form.get('email')
+        user.phone_number = request.form.get('phone_number')
+        user.role = request.form.get('role')
+        user.is_active = 'is_active' in request.form
+        user.is_admin = 'is_admin' in request.form
+        
+        # Update password if provided
+        new_password = request.form.get('new_password')
+        if new_password and len(new_password) >= 8:
+            user.set_password(new_password)
+        
+        db.session.commit()
+        
+        flash('User updated successfully!', 'success')
+        return redirect(url_for('admin.view_user', user_id=user.user_id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating user: {str(e)}', 'danger')
+        return redirect(url_for('admin.edit_user', user_id=user_id))

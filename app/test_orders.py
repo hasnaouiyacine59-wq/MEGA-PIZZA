@@ -731,3 +731,28 @@ def test_api_endpoint():
             'order_status': '/test/simulate-order-flow/<order_id>'
         }
     })
+@test_bp.route('/android-simulator')
+@login_required
+def android_simulator():
+    """Android app simulator page"""
+    if not current_user.is_admin():
+        flash('Administrator access required.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    try:
+        # Get menu items for display
+        menu_items = create_test_menu_items()
+        
+        # Get customers for the simulator
+        customers = Customer.query.all()
+        
+        # Get restaurants
+        restaurants = Restaurant.query.filter_by(is_active=True).all()
+        
+        return render_template('test/android_simulator.html',
+                             menu_items=menu_items,
+                             customers=customers,
+                             restaurants=restaurants)
+    except Exception as e:
+        flash(f'Error loading Android simulator: {str(e)}', 'danger')
+        return redirect(url_for('test.test_dashboard'))

@@ -210,12 +210,60 @@ CREATE TABLE IF NOT EXISTS order_items (
 -- ============================================
 CREATE TABLE IF NOT EXISTS order_status_history (
     history_id SERIAL PRIMARY KEY,
-    order_id VARCHAR(30) REFERENCES orders(order_id),
+    order_id VARCHAR(30) REFERENCES orders(order_id) ON DELETE CASCADE,
+    
+    -- Status Information
     old_status VARCHAR(20),
     new_status VARCHAR(20) NOT NULL,
-    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    changed_by INTEGER REFERENCES users(user_id)
+    
+    -- Actor Information
+    changed_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+    actor_type VARCHAR(20) DEFAULT 'system' CHECK (
+        actor_type IN ('customer', 'driver', 'restaurant', 'admin', 'system')
+    ),
+    
+    -- Delivery Specific (if applicable)
+    driver_id INTEGER REFERENCES drivers(driver_id) ON DELETE SET NULL,
+    location_lat DECIMAL(10, 8),
+    location_lng DECIMAL(11, 8),
+    estimated_arrival TIMESTAMP,
+    
+    -- Customer Communication
+    customer_notified BOOLEAN DEFAULT FALSE,
+    notification_method VARCHAR(20),
+    
+    -- Notes & Details
+    public_notes TEXT, -- Visible to customer
+    internal_notes TEXT, -- Staff only
+    reason_code VARCHAR(50), -- Predefined codes: 'customer_request', 'restaurant_delay', etc.
+    
+    -- Timestamps
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    effective_from TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    effective_until TIMESTAMP,
+    
+    -- Technical Audit
+    ip_address INET,
+    user_agent TEXT,
+    source VARCHAR(50) DEFAULT 'web', -- 'mobile_app', 'api', 'admin_panel', 'auto_system'
+    
+    -- Performance Metrics
+    time_in_previous_status INTEGER, -- minutes in old status
+    predicted_time_in_status INTEGER, -- estimated minutes in new status
+    
+    -- Indexes for performance
+    CONSTRAINT valid_status_transition CHECK (
+        old_status IS DISTINCT FROM new_status
+    )
 );
+
+-- Create indexes for common queries
+CREATE INDEX IF NOT EXISTS idx_order_status_history_order ON order_status_history(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_status_history_changed_at ON order_status_history(changed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_order_status_history_new_status ON order_status_history(new_status);
+CREATE INDEX IF NOT EXISTS idx_order_status_history_actor ON order_status_history(changed_by);
+CREATE INDEX IF NOT EXISTS idx_order_status_history_driver ON order_status_history(driver_id);
+CREATE INDEX IF NOT EXISTS idx_order_status_history_notified ON order_status_history(customer_notified) WHERE customer_notified = FALSE;
 
 -- ============================================
 -- CREATE AUTHENTICATION TABLES

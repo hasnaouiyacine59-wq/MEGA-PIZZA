@@ -1,0 +1,269 @@
+<!-- app/templates/admin/view_user.html -->
+{% extends "admin/base_admin.html" %}
+
+{% block title %}User Details - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Back Button -->
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-secondary me-3">
+            <i class="fas fa-arrow-left"></i> Back to Users
+        </a>
+        <h1 class="mt-4 mb-0">👤 User Details</h1>
+    </div>
+
+    <!-- User Info Card -->
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-user-circle me-2"></i>Profile Summary
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <div class="avatar-circle" style="width: 100px; height: 100px; background: #6c757d; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                            <span style="font-size: 40px; color: white; font-weight: bold;">
+                                {{ user.username[0]|upper }}
+                            </span>
+                        </div>
+                        <h4>{{ user.username }}</h4>
+                        <span class="badge 
+                            {% if user.role == 'admin' %}bg-danger
+                            {% elif user.role == 'driver' %}bg-warning
+                            {% elif user.role == 'restaurant' %}bg-info
+                            {% else %}bg-primary{% endif %} fs-6">
+                            {{ user.role|title }}
+                        </span>
+                    </div>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Status:</span>
+                            {% if user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Joined:</span>
+                            <span>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Last Login:</span>
+                            <span>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'Never' }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('admin.edit_user', user_id=user.user_id) }}" 
+                       class="btn btn-warning btn-sm me-2">
+                        <i class="fas fa-edit"></i> Edit User
+                    </a>
+                    {% if user.user_id != current_user.user_id %}
+                    <button type="button" class="btn btn-danger btn-sm" 
+                            onclick="confirmDelete({{ user.user_id }}, '{{ user.username }}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Basic Information Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">User ID</label>
+                            <div class="form-control-plaintext">{{ user.user_id }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Username</label>
+                            <div class="form-control-plaintext">{{ user.username }}</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Email Address</label>
+                            <div class="form-control-plaintext">{{ user.email }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Phone Number</label>
+                            <div class="form-control-plaintext">{{ user.phone_number if user.phone_number else 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Account Type</label>
+                            <div>
+                                <span class="badge 
+                                    {% if user.role == 'admin' %}bg-danger
+                                    {% elif user.role == 'driver' %}bg-warning
+                                    {% elif user.role == 'restaurant' %}bg-info
+                                    {% else %}bg-primary{% endif %}">
+                                    {{ user.role|title }}
+                                </span>
+                                {% if user.is_admin %}
+                                <span class="badge bg-dark ms-1">System Admin</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Account Status</label>
+                            <div>
+                                {% if user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Associated Data Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-database me-2"></i>Associated Data
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if user.role == 'user' %}
+                        <!-- Customer Data -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Customer Profile</label>
+                            <div>
+                                {% if customer %}
+                                <a href="#" class="btn btn-outline-primary btn-sm">
+                                    View Customer Details
+                                </a>
+                                {% else %}
+                                <span class="text-muted">No customer profile</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% elif user.role == 'driver' %}
+                        <!-- Driver Data -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Driver Profile</label>
+                            <div>
+                                {% if driver %}
+                                <a href="{{ url_for('admin.view_driver', driver_id=driver.driver_id) }}" 
+                                   class="btn btn-outline-warning btn-sm">
+                                    View Driver Details
+                                </a>
+                                {% else %}
+                                <span class="text-muted">No driver profile</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% elif user.role == 'restaurant' %}
+                        <!-- Restaurant Data -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Restaurant Profile</label>
+                            <div>
+                                {% if restaurant %}
+                                <a href="#" class="btn btn-outline-info btn-sm">
+                                    View Restaurant Details
+                                </a>
+                                {% else %}
+                                <span class="text-muted">No restaurant profile</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Total Orders</label>
+                            <div class="h5">
+                                {% if user.role == 'user' and customer %}
+                                {{ customer.orders|length if customer.orders else 0 }}
+                                {% else %}
+                                0
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Activity Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-history me-2"></i>Account Activity
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Account Created</label>
+                            <div>{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else 'N/A' }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Last Updated</label>
+                            <div>{{ user.updated_at.strftime('%Y-%m-%d %H:%M') if user.updated_at else 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Last Login</label>
+                            <div>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'Never logged in' }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Login Count</label>
+                            <div>{{ user.login_count if user.login_count else 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Card (Placeholder) -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-list-alt me-2"></i>Recent Activity
+        </div>
+        <div class="card-body">
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                <p>Activity log will be implemented soon</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+function confirmDelete(userId, username) {
+    if (confirm(`Are you sure you want to delete user "${username}"?\n\nThis will permanently delete the user account and all associated data. This action cannot be undone.`)) {
+        window.location.href = "{{ url_for('admin.delete_user', user_id=0) }}".replace('0', userId);
+    }
+}
+</script>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,.125);
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+.form-control-plaintext {
+    padding: 0.375rem 0;
+    border-bottom: 1px solid #dee2e6;
+}
+.avatar-circle {
+    background: linear-gradient(45deg, #6c757d, #495057);
+}
+</style>
+{% endblock %}

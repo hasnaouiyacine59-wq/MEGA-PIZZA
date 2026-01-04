@@ -1,0 +1,191 @@
+<!-- templates/admin/base_dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mega Pizza Admin Dashboard{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Railway CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/railway.css') }}">
+    
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="navbar navbar-admin navbar-expand-lg">
+        <div class="container-fluid">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <i class="fas fa-pizza-slice me-2"></i>Mega Pizza Admin
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h5><i class="fas fa-user-shield"></i> Admin Panel</h5>
+            <small>Full Control Dashboard</small>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="menu-section">MAIN</div>
+            <a href="{{ url_for('admin.dashboard') }}" class="menu-item active">
+                <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                <div class="menu-text">Dashboard</div>
+            </a>
+            
+            <div class="menu-section">MANAGEMENT</div>
+            <a href="{{ url_for('admin.manage_users') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-users"></i></div>
+                <div class="menu-text">Users</div>
+                <div class="menu-badge">{{ stats.total_users if stats else 0 }}</div>
+            </a>
+            
+            <a href="{{ url_for('admin.manage_drivers') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-truck"></i></div>
+                <div class="menu-text">Drivers</div>
+                <div class="menu-badge">{{ stats.drivers if stats else 0 }}</div>
+            </a>
+            
+            <a href="{{ url_for('admin.manage_restaurants') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-store"></i></div>
+                <div class="menu-text">Restaurants</div>
+                <div class="menu-badge">{{ stats.restaurants_count if stats else 0 }}</div>
+            </a>
+            
+            <a href="{{ url_for('admin.manage_customers') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-user-friends"></i></div>
+                <div class="menu-text">Customers</div>
+                <div class="menu-badge">{{ stats.total_customers if stats else 0 }}</div>
+            </a>
+            
+            <a href="{{ url_for('admin.manage_orders') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-shopping-cart"></i></div>
+                <div class="menu-text">Orders</div>
+                <div class="menu-badge">{{ stats.total_orders if stats else 0 }}</div>
+            </a>
+            
+            <div class="menu-section">CONTENT</div>
+            <a href="{{ url_for('admin.manage_menu_items') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-pizza-slice"></i></div>
+                <div class="menu-text">Menu Items</div>
+                <div class="menu-badge">{{ stats.total_menu_items if stats else 0 }}</div>
+            </a>
+            
+            <a href="{{ url_for('admin.manage_categories') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-tags"></i></div>
+                <div class="menu-text">Categories</div>
+            </a>
+            
+            <a href="{{ url_for('admin.manage_reviews') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-star"></i></div>
+                <div class="menu-text">Reviews</div>
+                <div class="menu-badge">{{ stats.total_reviews if stats else 0 }}</div>
+            </a>
+            
+            <div class="menu-section">TESTING</div>
+            <a href="{{ url_for('test.test_dashboard') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-vial"></i></div>
+                <div class="menu-text">Test Orders</div>
+            </a>
+            
+            <a href="{{ url_for('test.android_simulator') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-mobile-alt"></i></div>
+                <div class="menu-text">Android Simulator</div>
+            </a>
+            
+            <div class="menu-section">REPORTS</div>
+            <a href="{{ url_for('admin.analytics') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-chart-bar"></i></div>
+                <div class="menu-text">Analytics</div>
+            </a>
+            
+            <a href="{{ url_for('admin.revenue_report') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                <div class="menu-text">Revenue</div>
+            </a>
+            
+            <a href="{{ url_for('admin.sales_report') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="menu-text">Sales Report</div>
+            </a>
+            
+            <div class="menu-section">SYSTEM</div>
+            <a href="{{ url_for('admin.system_health') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-server"></i></div>
+                <div class="menu-text">System Health</div>
+            </a>
+            
+            <a href="{{ url_for('admin.settings') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-cog"></i></div>
+                <div class="menu-text">Settings</div>
+            </a>
+            
+            <div class="menu-divider"></div>
+            
+            <a href="{{ url_for('main.index') }}" class="menu-item">
+                <div class="menu-icon"><i class="fas fa-home"></i></div>
+                <div class="menu-text">View Site</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Railway JS -->
+    <script src="{{ url_for('static', filename='js/admin/railway.js') }}"></script>
+    
+    <!-- Flash Messages Handler -->
+    <script>
+        // Handle flash messages
+        document.addEventListener('DOMContentLoaded', function() {
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        setTimeout(() => {
+                            showToast('{{ message|safe }}', '{{ category if category != "message" else "success" }}');
+                        }, 500);
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        });
+    </script>
+    
+    <!-- Custom Scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>
