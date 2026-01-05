@@ -4,73 +4,223 @@
 {% block title %}Android App Simulator - Mega Pizza{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-mobile-alt"></i> Android App Simulator</h4>
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>Android App Simulator</h4>
+                    <span class="badge bg-light text-primary">Real-time Testing</span>
                 </div>
                 <div class="card-body">
-                    <div class="text-center mb-4">
-                        <img src="https://img.icons8.com/color/96/000000/android-os.png" alt="Android">
-                        <h5 class="mt-3">Mega Pizza Android App</h5>
-                        <p class="text-muted">Test API endpoints</p>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">API Endpoint</label>
-                        <div class="input-group">
-                            <span class="input-group-text">/test/api/</span>
-                            <input type="text" class="form-control" value="simulate-android-order" readonly>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="https://img.icons8.com/color/48/000000/android-os.png" alt="Android" class="me-3">
+                                <div>
+                                    <h5 class="mb-0">Mega Pizza Android App</h5>
+                                    <p class="text-muted mb-0">Test API endpoints with real database data</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <small>Using actual data from database. Customer IDs are strings like "CUST-001"</small>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Test Order Data</label>
-                        <textarea class="form-control" rows="10" id="requestData">
-{
-  "customer_id": 1,
-  "restaurant_id": 1,
-  "address_id": 1,
+                    <!-- API Configuration -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-cog me-2"></i>API Configuration</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">API Endpoint</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">POST</span>
+                                    <input type="text" class="form-control" id="apiEndpoint" value="/api/orders">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Content Type</label>
+                                <input type="text" class="form-control" value="application/json" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Request Builder -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-edit me-2"></i>Order Builder</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Customer ID</label>
+                                <select class="form-select" id="customerSelect">
+                                    <option value="">Loading customers...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Restaurant</label>
+                                <select class="form-select" id="restaurantSelect">
+                                    <option value="">Loading restaurants...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Delivery Type</label>
+                                <select class="form-select" id="deliveryType">
+                                    <option value="delivery">Delivery</option>
+                                    <option value="pickup">Pickup</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-4">
+                                <label class="form-label">Address</label>
+                                <select class="form-select" id="addressSelect">
+                                    <option value="">Select customer first</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Payment Method</label>
+                                <select class="form-select" id="paymentMethod">
+                                    <option value="credit_card">Credit Card</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="debit_card">Debit Card</option>
+                                    <option value="online">Online Payment</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Special Instructions</label>
+                                <input type="text" class="form-control" id="specialInstructions" placeholder="Optional">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu Items Selection -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-pizza-slice me-2"></i>Menu Items</h5>
+                        <div class="row" id="menuItemsContainer">
+                            <div class="col-12">
+                                <p class="text-muted">Select restaurant to load menu items...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <h6>Selected Items:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm" id="selectedItemsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Price</th>
+                                            <th>Quantity</th>
+                                            <th>Subtotal</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="selectedItemsBody">
+                                        <tr id="noItemsRow">
+                                            <td colspan="5" class="text-center text-muted">No items selected</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                            <td id="itemsTotal">$0.00</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Request Data Preview -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-code me-2"></i>Request JSON</h5>
+                        <div class="position-relative">
+                            <pre class="bg-light p-3 border rounded" id="requestData" style="min-height: 200px; max-height: 300px; overflow-y: auto;">{
+  "customer_id": "",
+  "restaurant_id": "",
+  "address_id": null,
   "delivery_type": "delivery",
-  "items": [
-    {
-      "menu_item_id": 1,
-      "quantity": 2,
-      "price": 12.99,
-      "special_instructions": "Extra cheese"
-    },
-    {
-      "menu_item_id": 5,
-      "quantity": 1,
-      "price": 3.99
-    }
-  ],
-  "subtotal": 29.97,
-  "tax": 2.40,
-  "delivery_fee": 2.99,
-  "total_amount": 35.36,
-  "payment_method": "card",
-  "special_instructions": "Ring doorbell twice"
-}
-                        </textarea>
+  "items": [],
+  "payment_method": "credit_card",
+  "special_instructions": ""
+}</pre>
+                            <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2" onclick="copyRequestData()">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-success btn-lg" onclick="sendAndroidRequest()">
-                            <i class="fas fa-paper-plane"></i> Send Order Request
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button class="btn btn-lg btn-success" onclick="sendAndroidRequest()">
+                            <i class="fas fa-paper-plane me-2"></i>Send Order Request
                         </button>
-                        <button class="btn btn-outline-primary" onclick="testConnection()">
-                            <i class="fas fa-wifi"></i> Test Connection
+                        <button class="btn btn-lg btn-outline-primary" onclick="testConnection()">
+                            <i class="fas fa-wifi me-2"></i>Test Connection
+                        </button>
+                        <button class="btn btn-lg btn-outline-secondary" onclick="resetForm()">
+                            <i class="fas fa-redo me-2"></i>Reset
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Response Panel -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-server me-2"></i>API Response</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6>Response Status:</h6>
+                            <span class="badge bg-secondary" id="responseStatus">Waiting</span>
+                        </div>
+                        <div class="position-relative">
+                            <pre class="bg-dark text-light p-3 rounded" id="responseArea" style="min-height: 300px; max-height: 500px; overflow-y: auto; font-size: 0.9rem;">
+Waiting for request...
+                            </pre>
+                            <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2" onclick="copyResponseData()">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
                     
-                    <div class="mt-4">
-                        <h6>Response:</h6>
-                        <pre class="bg-light p-3 border rounded" id="responseArea">
-Waiting for response...
-                        </pre>
+                    <!-- Order Summary -->
+                    <div id="orderSummary" class="d-none">
+                        <h6><i class="fas fa-receipt me-2"></i>Order Summary</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Order ID:</strong> <span id="summaryOrderId"></span></p>
+                                <p class="mb-1"><strong>Status:</strong> <span id="summaryStatus" class="badge"></span></p>
+                                <p class="mb-1"><strong>Total:</strong> <span id="summaryTotal"></span></p>
+                                <p class="mb-1"><strong>Estimated Delivery:</strong> <span id="summaryDelivery"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Database Status -->
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-database me-2"></i>Database Status</h5>
+                </div>
+                <div class="card-body">
+                    <div id="databaseStats">
+                        <p class="text-muted">Loading database statistics...</p>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-outline-info w-100" onclick="loadDatabaseStats()">
+                            <i class="fas fa-sync me-1"></i>Refresh Stats
+                        </button>
                     </div>
                 </div>
             </div>
@@ -78,40 +228,575 @@ Waiting for response...
     </div>
 </div>
 
+<!-- Menu Item Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Item to Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalItemId">
+                <div class="mb-3">
+                    <label class="form-label">Item Name</label>
+                    <input type="text" class="form-control" id="modalItemName" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="modalItemDesc" rows="2" readonly></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="text" class="form-control" id="modalItemPrice" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="modalItemQuantity" value="1" min="1" max="10">
+                    </div>
+                </div>
+                <div class="mb-3 mt-3">
+                    <label class="form-label">Special Instructions</label>
+                    <textarea class="form-control" id="modalItemInstructions" rows="2" placeholder="Optional"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addItemToOrder()">Add to Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+}
+.card-header {
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+}
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.item-card {
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+.item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+#selectedItemsTable tbody tr:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+</style>
+
 <script>
-function sendAndroidRequest() {
-    const requestData = document.getElementById('requestData').value;
-    const responseArea = document.getElementById('responseArea');
+// Global variables
+let selectedItems = [];
+let currentModalItem = null;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadCustomers();
+    loadRestaurants();
+    loadDatabaseStats();
     
-    responseArea.textContent = 'Sending request...';
+    // Add event listeners
+    document.getElementById('customerSelect').addEventListener('change', loadAddresses);
+    document.getElementById('restaurantSelect').addEventListener('change', loadMenuItems);
+    document.getElementById('deliveryType').addEventListener('change', updateRequestData);
+    document.getElementById('paymentMethod').addEventListener('change', updateRequestData);
+    document.getElementById('specialInstructions').addEventListener('input', updateRequestData);
+    document.getElementById('addressSelect').addEventListener('change', updateRequestData);
+    
+    // Update request data initially
+    updateRequestData();
+});
+
+// Load customers from database
+function loadCustomers() {
+    fetch('/test/api/get-customers')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('customerSelect');
+            select.innerHTML = '<option value="">Select Customer</option>';
+            data.customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.customer_id;
+                option.textContent = `${customer.name} (${customer.customer_id})`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading customers:', error);
+        });
+}
+
+// Load restaurants from database
+function loadRestaurants() {
+    fetch('/test/api/get-restaurants')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('restaurantSelect');
+            select.innerHTML = '<option value="">Select Restaurant</option>';
+            data.restaurants.forEach(restaurant => {
+                const option = document.createElement('option');
+                option.value = restaurant.restaurant_id;
+                option.textContent = `${restaurant.name} (${restaurant.restaurant_id})`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading restaurants:', error);
+        });
+}
+
+// Load addresses for selected customer
+function loadAddresses() {
+    const customerId = document.getElementById('customerSelect').value;
+    const select = document.getElementById('addressSelect');
+    
+    if (!customerId) {
+        select.innerHTML = '<option value="">Select customer first</option>';
+        return;
+    }
+    
+    fetch(`/test/api/get-addresses?customer_id=${customerId}`)
+        .then(response => response.json())
+        .then(data => {
+            select.innerHTML = '<option value="">Select Address</option>';
+            data.addresses.forEach(address => {
+                const option = document.createElement('option');
+                option.value = address.address_id;
+                option.textContent = `${address.street}, ${address.city}`;
+                if (address.is_default) {
+                    option.textContent += ' (Default)';
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+            updateRequestData();
+        })
+        .catch(error => {
+            console.error('Error loading addresses:', error);
+        });
+}
+
+// Load menu items for selected restaurant
+function loadMenuItems() {
+    const restaurantId = document.getElementById('restaurantSelect').value;
+    const container = document.getElementById('menuItemsContainer');
+    
+    if (!restaurantId) {
+        container.innerHTML = '<p class="text-muted">Select restaurant to load menu items...</p>';
+        return;
+    }
+    
+    fetch(`/test/api/get-menu-items?restaurant_id=${restaurantId}`)
+        .then(response => response.json())
+        .then(data => {
+            container.innerHTML = '';
+            
+            if (data.items.length === 0) {
+                container.innerHTML = '<p class="text-muted">No menu items available for this restaurant</p>';
+                return;
+            }
+            
+            // Group items by category
+            const categories = {};
+            data.items.forEach(item => {
+                if (!categories[item.category]) {
+                    categories[item.category] = [];
+                }
+                categories[item.category].push(item);
+            });
+            
+            // Create category sections
+            Object.keys(categories).forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'col-12 mb-4';
+                categoryDiv.innerHTML = `
+                    <h6 class="border-bottom pb-2 mb-3">${category}</h6>
+                    <div class="row" id="category-${category.replace(/\s+/g, '-')}"></div>
+                `;
+                container.appendChild(categoryDiv);
+                
+                const categoryContainer = document.getElementById(`category-${category.replace(/\s+/g, '-')}`);
+                
+                categories[category].forEach(item => {
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'col-md-6 col-lg-4 mb-3';
+                    itemCard.innerHTML = `
+                        <div class="card item-card h-100" onclick="openItemModal('${item.item_id}', '${item.name}', '${item.description || ''}', ${item.price})">
+                            <div class="card-body">
+                                <h6 class="card-title">${item.name}</h6>
+                                <p class="card-text text-muted small">${item.description || 'No description'}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-success">$${item.price}</span>
+                                    <span class="badge bg-info">${item.is_available ? 'Available' : 'Unavailable'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    if (!item.is_available) {
+                        itemCard.style.opacity = '0.6';
+                        itemCard.style.cursor = 'not-allowed';
+                        itemCard.onclick = null;
+                    }
+                    categoryContainer.appendChild(itemCard);
+                });
+            });
+        })
+        .catch(error => {
+            console.error('Error loading menu items:', error);
+        });
+}
+
+// Open modal to add item
+function openItemModal(itemId, name, description, price) {
+    currentModalItem = { itemId, name, description, price };
+    document.getElementById('modalItemId').value = itemId;
+    document.getElementById('modalItemName').value = name;
+    document.getElementById('modalItemDesc').value = description;
+    document.getElementById('modalItemPrice').value = price;
+    document.getElementById('modalItemQuantity').value = 1;
+    document.getElementById('modalItemInstructions').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('itemModal'));
+    modal.show();
+}
+
+// Add item to order
+function addItemToOrder() {
+    const quantity = parseInt(document.getElementById('modalItemQuantity').value);
+    const instructions = document.getElementById('modalItemInstructions').value;
+    
+    if (quantity < 1) {
+        alert('Quantity must be at least 1');
+        return;
+    }
+    
+    // Check if item already exists
+    const existingIndex = selectedItems.findIndex(item => item.item_id === currentModalItem.itemId);
+    
+    if (existingIndex > -1) {
+        // Update existing item
+        selectedItems[existingIndex].quantity += quantity;
+        if (instructions) {
+            selectedItems[existingIndex].special_instructions = instructions;
+        }
+    } else {
+        // Add new item
+        selectedItems.push({
+            item_id: currentModalItem.itemId,
+            quantity: quantity,
+            special_instructions: instructions || ''
+        });
+    }
+    
+    updateSelectedItemsTable();
+    updateRequestData();
+    
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
+}
+
+// Update selected items table
+function updateSelectedItemsTable() {
+    const tbody = document.getElementById('selectedItemsBody');
+    const noItemsRow = document.getElementById('noItemsRow');
+    const itemsTotal = document.getElementById('itemsTotal');
+    
+    if (selectedItems.length === 0) {
+        noItemsRow.style.display = '';
+        tbody.innerHTML = '<tr id="noItemsRow"><td colspan="5" class="text-center text-muted">No items selected</td></tr>';
+        itemsTotal.textContent = '$0.00';
+        return;
+    }
+    
+    noItemsRow.style.display = 'none';
+    tbody.innerHTML = '';
+    
+    let total = 0;
+    
+    selectedItems.forEach((item, index) => {
+        // In a real app, you'd fetch the actual price from the server
+        const price = 10.00; // This should come from your database
+        const subtotal = price * item.quantity;
+        total += subtotal;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.item_id} ${item.special_instructions ? `(${item.special_instructions})` : ''}</td>
+            <td>$${price.toFixed(2)}</td>
+            <td>
+                <div class="input-group input-group-sm" style="width: 120px;">
+                    <button class="btn btn-outline-secondary" type="button" onclick="updateItemQuantity(${index}, -1)">-</button>
+                    <input type="number" class="form-control text-center" value="${item.quantity}" min="1" onchange="updateItemQuantity(${index}, 0, this.value)">
+                    <button class="btn btn-outline-secondary" type="button" onclick="updateItemQuantity(${index}, 1)">+</button>
+                </div>
+            </td>
+            <td>$${subtotal.toFixed(2)}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger" onclick="removeItem(${index})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    itemsTotal.textContent = `$${total.toFixed(2)}`;
+}
+
+// Update item quantity
+function updateItemQuantity(index, change, newValue = null) {
+    if (newValue !== null) {
+        selectedItems[index].quantity = parseInt(newValue);
+    } else {
+        selectedItems[index].quantity += change;
+    }
+    
+    if (selectedItems[index].quantity < 1) {
+        selectedItems[index].quantity = 1;
+    }
+    
+    updateSelectedItemsTable();
+    updateRequestData();
+}
+
+// Remove item from order
+function removeItem(index) {
+    selectedItems.splice(index, 1);
+    updateSelectedItemsTable();
+    updateRequestData();
+}
+
+// Update request data preview
+function updateRequestData() {
+    const requestData = {
+        customer_id: document.getElementById('customerSelect').value,
+        restaurant_id: document.getElementById('restaurantSelect').value,
+        address_id: document.getElementById('addressSelect').value ? parseInt(document.getElementById('addressSelect').value) : null,
+        delivery_type: document.getElementById('deliveryType').value,
+        items: selectedItems,
+        payment_method: document.getElementById('paymentMethod').value,
+        special_instructions: document.getElementById('specialInstructions').value
+    };
+    
+    document.getElementById('requestData').textContent = JSON.stringify(requestData, null, 2);
+}
+
+// Send Android request
+function sendAndroidRequest() {
+    const requestData = JSON.parse(document.getElementById('requestData').textContent);
+    const responseArea = document.getElementById('responseArea');
+    const responseStatus = document.getElementById('responseStatus');
+    
+    // Validate required fields
+    if (!requestData.customer_id || !requestData.restaurant_id || !requestData.address_id || requestData.items.length === 0) {
+        responseStatus.className = 'badge bg-danger';
+        responseStatus.textContent = 'Validation Failed';
+        responseArea.textContent = JSON.stringify({
+            success: false,
+            message: 'Please fill all required fields and add at least one item'
+        }, null, 2);
+        return;
+    }
+    
+    responseStatus.className = 'badge bg-warning';
+    responseStatus.textContent = 'Sending...';
+    responseArea.textContent = 'Sending request to server...';
     
     fetch('/test/api/simulate-android-order', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: requestData
+        body: JSON.stringify(requestData)
     })
-    .then(response => response.json())
+    .then(response => {
+        responseStatus.className = response.ok ? 'badge bg-success' : 'badge bg-danger';
+        responseStatus.textContent = response.status;
+        return response.json();
+    })
     .then(data => {
         responseArea.textContent = JSON.stringify(data, null, 2);
+        
+        // Update order summary if successful
+        if (data.success) {
+            document.getElementById('orderSummary').classList.remove('d-none');
+            document.getElementById('summaryOrderId').textContent = data.order_id || 'N/A';
+            document.getElementById('summaryStatus').textContent = data.status || 'pending';
+            document.getElementById('summaryStatus').className = 'badge bg-warning';
+            document.getElementById('summaryTotal').textContent = data.total ? `$${data.total}` : 'N/A';
+            document.getElementById('summaryDelivery').textContent = data.estimated_delivery || 'N/A';
+        }
+        
+        // Refresh database stats
+        loadDatabaseStats();
     })
     .catch(error => {
-        responseArea.textContent = 'Error: ' + error;
+        responseStatus.className = 'badge bg-danger';
+        responseStatus.textContent = 'Error';
+        responseArea.textContent = 'Error: ' + error.message;
     });
 }
 
+// Test connection
 function testConnection() {
     const responseArea = document.getElementById('responseArea');
-    responseArea.textContent = 'Testing connection...';
+    const responseStatus = document.getElementById('responseStatus');
+    
+    responseStatus.className = 'badge bg-warning';
+    responseStatus.textContent = 'Testing...';
+    responseArea.textContent = 'Testing API connection...';
     
     fetch('/test/test-api')
-    .then(response => response.json())
+    .then(response => {
+        responseStatus.className = response.ok ? 'badge bg-success' : 'badge bg-danger';
+        responseStatus.textContent = response.status;
+        return response.json();
+    })
     .then(data => {
         responseArea.textContent = JSON.stringify(data, null, 2);
     })
     .catch(error => {
-        responseArea.textContent = 'Error: ' + error;
+        responseStatus.className = 'badge bg-danger';
+        responseStatus.textContent = 'Error';
+        responseArea.textContent = 'Connection error: ' + error.message;
+    });
+}
+
+// Load database statistics
+function loadDatabaseStats() {
+    fetch('/test/api/database-stats')
+        .then(response => response.json())
+        .then(data => {
+            const statsDiv = document.getElementById('databaseStats');
+            statsDiv.innerHTML = `
+                <div class="row">
+                    <div class="col-6 mb-2">
+                        <div class="card bg-light">
+                            <div class="card-body p-2 text-center">
+                                <h6 class="mb-0">${data.restaurants}</h6>
+                                <small class="text-muted">Restaurants</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <div class="card bg-light">
+                            <div class="card-body p-2 text-center">
+                                <h6 class="mb-0">${data.customers}</h6>
+                                <small class="text-muted">Customers</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <div class="card bg-light">
+                            <div class="card-body p-2 text-center">
+                                <h6 class="mb-0">${data.menu_items}</h6>
+                                <small class="text-muted">Menu Items</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <div class="card bg-light">
+                            <div class="card-body p-2 text-center">
+                                <h6 class="mb-0">${data.orders}</h6>
+                                <small class="text-muted">Orders</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <div class="card bg-light">
+                            <div class="card-body p-2 text-center">
+                                <h6 class="mb-0">${data.active_orders}</h6>
+                                <small class="text-muted">Active Orders</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <div class="card bg-light">
+                            <div class="card-body p-2 text-center">
+                                <h6 class="mb-0">${data.available_drivers}</h6>
+                                <small class="text-muted">Available Drivers</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        })
+        .catch(error => {
+            console.error('Error loading stats:', error);
+        });
+}
+
+// Reset form
+function resetForm() {
+    document.getElementById('customerSelect').value = '';
+    document.getElementById('restaurantSelect').value = '';
+    document.getElementById('addressSelect').innerHTML = '<option value="">Select customer first</option>';
+    document.getElementById('deliveryType').value = 'delivery';
+    document.getElementById('paymentMethod').value = 'credit_card';
+    document.getElementById('specialInstructions').value = '';
+    document.getElementById('menuItemsContainer').innerHTML = '<p class="text-muted">Select restaurant to load menu items...</p>';
+    
+    selectedItems = [];
+    updateSelectedItemsTable();
+    updateRequestData();
+    
+    document.getElementById('orderSummary').classList.add('d-none');
+    document.getElementById('responseArea').textContent = 'Waiting for request...';
+    document.getElementById('responseStatus').className = 'badge bg-secondary';
+    document.getElementById('responseStatus').textContent = 'Waiting';
+}
+
+// Copy request data
+function copyRequestData() {
+    const text = document.getElementById('requestData').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Request data copied to clipboard!');
+    });
+}
+
+// Copy response data
+function copyResponseData() {
+    const text = document.getElementById('responseArea').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Response data copied to clipboard!');
+    });
+}
+
+// Show toast notification
+function showToast(message) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed bottom-0 end-0 m-3';
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Remove toast after it hides
+    toast.addEventListener('hidden.bs.toast', () => {
+        document.body.removeChild(toast);
     });
 }
 </script>
