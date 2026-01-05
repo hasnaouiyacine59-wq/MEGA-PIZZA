@@ -67,37 +67,50 @@
 </div>
 
 <!-- Statistics Cards -->
+<!-- Statistics Cards - Updated Layout -->
 <div class="stats-grid">
+    <!-- Total Orders -->
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-            <i class="fas fa-shopping-cart"></i>
-        </div>
-        <div class="stat-number">{{ stats.total_orders if stats else 0 }}</div>
         <div class="stat-label">Total Orders</div>
+        <div class="stat-content-row">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="stat-number">{{ stats.total_orders if stats else 0 }}</div>
+        </div>
     </div>
     
+    <!-- Pending Orders -->
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="stat-number">{{ stats.pending_orders if stats else 0 }}</div>
         <div class="stat-label">Pending Orders</div>
+        <div class="stat-content-row">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-number">{{ stats.pending_orders if stats else 0 }}</div>
+        </div>
     </div>
     
+    <!-- Active Orders -->
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-            <i class="fas fa-truck-moving"></i>
-        </div>
-        <div class="stat-number">{{ stats.active_orders if stats else 0 }}</div>
         <div class="stat-label">Active Orders</div>
+        <div class="stat-content-row">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <i class="fas fa-truck-moving"></i>
+            </div>
+            <div class="stat-number">{{ stats.active_orders if stats else 0 }}</div>
+        </div>
     </div>
     
+    <!-- Restaurants -->
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-            <i class="fas fa-store"></i>
-        </div>
-        <div class="stat-number">{{ stats.restaurants_count if stats else 0 }}</div>
         <div class="stat-label">Restaurants</div>
+        <div class="stat-content-row">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <i class="fas fa-store"></i>
+            </div>
+            <div class="stat-number">{{ stats.restaurants_count if stats else 0 }}</div>
+        </div>
     </div>
 </div>
 
