@@ -1,22 +1,23 @@
-# app/routes.py - ADD THIS AT THE TOP
-# from flask import render_template, Blueprint, redirect, url_for, flash
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
-
+# app/routes.py
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from app.models import User, Driver
 from app.forms import DriverRegistrationForm
 from app import db
-
 from datetime import datetime
-from flask import current_app  # Add this import
+import json
+import traceback
+from flask import current_app
 
-# Add main_bp for main routes
+# Create Blueprint for main routes
 main_bp = Blueprint('main', __name__)
 
+# Main routes
 @main_bp.route('/')
 def index():
     if current_user.is_authenticated:
-        if current_user.is_admin():
+        # Check if user is admin - make sure you have is_admin() method in User model
+        if hasattr(current_user, 'is_admin') and current_user.is_admin():
             return redirect(url_for('admin.dashboard'))
         return redirect(url_for('main.dashboard'))
     
@@ -25,110 +26,316 @@ def index():
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():
-    if current_user.is_driver():
-        return render_template('driver/dashboard.html')
-    return render_template('dashboard.html')
+    """User dashboard - redirects based on role"""
+    # Check user role
+    if hasattr(current_user, 'role'):
+        if current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        elif current_user.role == 'driver':
+            return render_template('driver/dashboard.html')
+        else:
+            # For all other roles (user, employee, manager, etc.)
+            return render_template('user/dashboard.html')
+    else:
+        # Fallback
+        return render_template('user/dashboard.html')
+# ============================================
+# TEST API ROUTES FOR ANDROID SIMULATOR
+# ============================================
 
-admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
-
-@admin_bp.route('/dashboard')
+@main_bp.route('/test/android-simulator')
 @login_required
-def dashboard():
-    # Check if user is admin
-    if not current_user.is_admin():
-        flash('Access denied. Admin privileges required.', 'danger')
-        return redirect(url_for('main.index'))
-    
-    # Get stats
-    total_users = User.query.count()
-    active_users = User.query.filter_by(is_active=True).count()
-    admins = User.query.filter_by(role='admin').count()
-    drivers = User.query.filter_by(role='driver').count()
-    customers = User.query.filter_by(role='user').count()
-    restaurants_count = 0  # You can add Restaurant model count
-    orders_count = 0  # You can add Order model count
-    
-    # Get current time
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
-    
-    return render_template('admin/dashboard.html',
-                         total_users=total_users,
-                         active_users=active_users,
-                         admins=admins,
-                         drivers=drivers,
-                         customers=customers,
-                         restaurants_count=restaurants_count,
-                         orders_count=orders_count,
-                         current_time=current_time)
+def android_simulator():
+    """Serve the Android simulator page"""
+    return render_template('test/android_simulator.html')
 
-@admin_bp.route('/drivers/add', methods=['GET', 'POST'])
+@main_bp.route('/test/test-api')
 @login_required
-def add_driver():
-    if not current_user.is_admin():
-        flash('Administrator access required.', 'danger')
-        return redirect(url_for('auth.login'))
+def test_api():
+    """Simple API test endpoint"""
+    return jsonify({
+        'status': 'success',
+        'message': 'API is working',
+        'timestamp': datetime.now().isoformat(),
+        'database': 'Connected'
+    })
+
+@main_bp.route('/test/api/get-customers')
+@login_required
+def get_customers():
+    """Get list of customers for the simulator"""
+    try:
+        with db.engine.connect() as connection:
+            result = connection.execute("""
+                SELECT customer_id, name, phone_number, email 
+                FROM customers 
+                ORDER BY customer_id
+            """)
+            customers = []
+            for row in result:
+                customers.append({
+                    'customer_id': row[0],
+                    'name': row[1],
+                    'phone_number': row[2],
+                    'email': row[3]
+                })
+            
+            return jsonify({'customers': customers})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@main_bp.route('/test/api/get-restaurants')
+@login_required
+def get_restaurants():
+    """Get list of restaurants for the simulator"""
+    try:
+        with db.engine.connect() as connection:
+            result = connection.execute("""
+                SELECT restaurant_id, name, address, phone, is_open, delivery_radius
+                FROM restaurants 
+                WHERE is_active = true
+                ORDER BY name
+            """)
+            restaurants = []
+            for row in result:
+                restaurants.append({
+                    'restaurant_id': row[0],
+                    'name': row[1],
+                    'address': row[2],
+                    'phone': row[3],
+                    'is_open': row[4],
+                    'delivery_radius': row[5]
+                })
+            
+            return jsonify({'restaurants': restaurants})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@main_bp.route('/test/api/get-addresses')
+@login_required
+def get_addresses():
+    """Get addresses for a customer"""
+    customer_id = request.args.get('customer_id')
+    if not customer_id:
+        return jsonify({'error': 'customer_id required'}), 400
     
-    form = DriverRegistrationForm()
+    try:
+        with db.engine.connect() as connection:
+            result = connection.execute("""
+                SELECT address_id, street, city, state, postal_code, is_default
+                FROM addresses 
+                WHERE customer_id = %s
+                ORDER BY is_default DESC, created_at DESC
+            """, (customer_id,))
+            
+            addresses = []
+            for row in result:
+                addresses.append({
+                    'address_id': row[0],
+                    'street': row[1],
+                    'city': row[2],
+                    'state': row[3],
+                    'postal_code': row[4],
+                    'is_default': row[5]
+                })
+            
+            return jsonify({'addresses': addresses})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@main_bp.route('/test/api/get-menu-items')
+@login_required
+def get_menu_items():
+    """Get menu items for a restaurant"""
+    restaurant_id = request.args.get('restaurant_id')
+    if not restaurant_id:
+        return jsonify({'error': 'restaurant_id required'}), 400
     
-    if form.validate_on_submit():
-        # Check if user exists
-        existing_user = User.query.filter(
-            (User.username == form.username.data) | 
-            (User.email == form.email.data)
-        ).first()
+    try:
+        with db.engine.connect() as connection:
+            result = connection.execute("""
+                SELECT item_id, name, description, price, category, is_available, image_url
+                FROM menu_items 
+                WHERE restaurant_id = %s AND is_available = true
+                ORDER BY category, name
+            """, (restaurant_id,))
+            
+            items = []
+            for row in result:
+                items.append({
+                    'item_id': row[0],
+                    'name': row[1],
+                    'description': row[2],
+                    'price': float(row[3]),
+                    'category': row[4],
+                    'is_available': row[5],
+                    'image_url': row[6]
+                })
+            
+            return jsonify({'items': items})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@main_bp.route('/test/api/database-stats')
+@login_required
+def database_stats():
+    """Get database statistics"""
+    try:
+        with db.engine.connect() as connection:
+            stats = {}
+            
+            # Count restaurants
+            result = connection.execute("SELECT COUNT(*) FROM restaurants")
+            stats['restaurants'] = result.scalar()
+            
+            # Count customers
+            result = connection.execute("SELECT COUNT(*) FROM customers")
+            stats['customers'] = result.scalar()
+            
+            # Count menu items
+            result = connection.execute("SELECT COUNT(*) FROM menu_items WHERE is_available = true")
+            stats['menu_items'] = result.scalar()
+            
+            # Count orders
+            result = connection.execute("SELECT COUNT(*) FROM orders")
+            stats['orders'] = result.scalar()
+            
+            # Count active orders
+            result = connection.execute("""
+                SELECT COUNT(*) FROM orders 
+                WHERE order_status NOT IN ('delivered', 'cancelled')
+            """)
+            stats['active_orders'] = result.scalar()
+            
+            # Count available drivers
+            result = connection.execute("""
+                SELECT COUNT(*) FROM drivers 
+                WHERE is_available = true AND is_on_shift = true
+            """)
+            stats['available_drivers'] = result.scalar()
+            
+            return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@main_bp.route('/test/api/simulate-android-order', methods=['POST'])
+@login_required
+def simulate_android_order():
+    """Simulate an Android app order creation"""
+    try:
+        data = request.get_json()
         
-        if existing_user:
-            flash('Username or email already exists', 'danger')
-            return render_template('admin/add_driver.html', form=form)
+        # Validate required fields
+        required_fields = ['customer_id', 'restaurant_id', 'address_id', 'delivery_type', 'items']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'success': False,
+                    'message': f'Missing required field: {field}'
+                }), 400
         
+        # Convert IDs to correct types
+        customer_id = str(data['customer_id'])
+        restaurant_id = str(data['restaurant_id'])
+        address_id = int(data['address_id'])
+        
+        # Generate order ID
+        order_id = f"TEST-{datetime.now().strftime('%Y%m%d%H%M%S')}-DLVR"
+        
+        # Call stored procedure
+        with db.engine.connect() as connection:
+            # Convert items to JSON string
+            items_json = json.dumps(data['items'])
+            
+            connection.execute(
+                "CALL create_order(%s, %s, %s, %s, %s, %s::jsonb, %s, %s)",
+                [
+                    order_id,
+                    customer_id,
+                    restaurant_id,
+                    address_id,
+                    data['delivery_type'],
+                    items_json,
+                    data.get('special_instructions'),
+                    data.get('payment_method', 'cash')
+                ]
+            )
+            connection.commit()
+            
+            # Get the created order details
+            result = connection.execute("""
+                SELECT order_status, total_amount, created_at
+                FROM orders 
+                WHERE order_id = %s
+            """, (order_id,))
+            
+            order = result.fetchone()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Order created successfully',
+            'order_id': order_id,
+            'status': order[0] if order else 'pending',
+            'total': float(order[1]) if order and order[1] else 0,
+            'created_at': order[2].isoformat() if order and order[2] else None
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Order failed: {str(e)}'
+        }), 500
+
+
+# Add this to your routes.py after the imports
+import traceback
+from flask import current_app
+
+# Add a debug endpoint
+@main_bp.route('/test/api/debug-db')
+@login_required
+def debug_db():
+    """Debug database connection"""
+    try:
+        # Test 1: Check database engine
+        engine_info = {
+            'engine': str(db.engine),
+            'driver': db.engine.driver,
+            'url': str(db.engine.url),
+            'pool_size': db.engine.pool.size(),
+            'echo': db.engine.echo
+        }
+        
+        # Test 2: List all tables
+        tables = []
         try:
-            # Create User account
-            user = User(
-                username=form.username.data,
-                email=form.email.data,
-                phone_number=form.phone.data,
-                role='driver',
-                is_active=True
-            )
-            
-            user.password = form.password.data
-            
-            db.session.add(user)
-            db.session.flush()
-            
-            # Create Driver profile - SET THE STATUS FIELDS!
-            driver = Driver(
-                user_id=user.user_id,
-                license_number=form.license_number.data,
-                vehicle_type=form.vehicle_type.data,
-                vehicle_model=form.vehicle_model.data,
-                license_plate=form.license_plate.data,
-                emergency_contact=form.emergency_contact.data,
-                emergency_phone=form.emergency_phone.data,
-                
-                # ADD THESE LINES:
-                is_available=True,  # Default to available
-                is_on_shift=False,   # Default to not on shift
-                
-                # Set other defaults if needed:
-                rating=0.0,
-                total_deliveries=0,
-                completed_deliveries=0,
-                failed_deliveries=0,
-                total_earnings=0.0
-            )
-            
-            db.session.add(driver)
-            db.session.commit()
-            
-            flash(f'Driver {form.username.data} added successfully!', 'success')
-            return redirect(url_for('admin.manage_drivers'))
-            
+            with db.engine.connect() as conn:
+                result = conn.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
+                tables = [row[0] for row in result]
         except Exception as e:
-            db.session.rollback()
-            flash(f'Error adding driver: {str(e)}', 'danger')
-            current_app.logger.error(f'Error adding driver: {str(e)}')
-            import traceback
-            traceback.print_exc()
-    
-    return render_template('admin/add_driver.html', form=form)
+            tables_error = str(e)
+        
+        # Test 3: Check if specific tables exist
+        tables_to_check = ['customers', 'restaurants', 'menu_items', 'orders', 'drivers']
+        table_status = {}
+        
+        for table in tables_to_check:
+            try:
+                with db.engine.connect() as conn:
+                    conn.execute(f"SELECT 1 FROM {table} LIMIT 1")
+                    table_status[table] = 'exists'
+            except Exception as e:
+                table_status[table] = f'error: {str(e)}'
+        
+        return jsonify({
+            'engine_info': engine_info,
+            'all_tables': tables,
+            'table_status': table_status,
+            'python_version': '3.x'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
