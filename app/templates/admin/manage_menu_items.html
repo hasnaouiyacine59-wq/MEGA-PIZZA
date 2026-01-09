@@ -23,46 +23,97 @@
     <!-- Filters -->
     <div class="card border-railway mb-4">
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label text-muted small">Restaurant</label>
-                    <select class="form-select form-select-sm border-railway">
-                        <option value="">All Restaurants</option>
-                        {% for restaurant in restaurants %}
-                        <option value="{{ restaurant.restaurant_id }}">{{ restaurant.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label text-muted small">Category</label>
-                    <select class="form-select form-select-sm border-railway">
-                        <option value="">All Categories</option>
-                        <option value="Pizza">Pizza</option>
-                        <option value="Burgers">Burgers</option>
-                        <option value="Tacos">Tacos</option>
-                        <option value="Sushi">Sushi</option>
-                        <option value="Pasta">Pasta</option>
-                        <option value="Drinks">Drinks</option>
-                        <option value="Sides">Sides</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label text-muted small">Availability</label>
-                    <select class="form-select form-select-sm border-railway">
-                        <option value="">All Items</option>
-                        <option value="available">Available</option>
-                        <option value="unavailable">Unavailable</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label text-muted small">&nbsp;</label>
-                    <div>
-                        <button class="btn btn-sm btn-primary w-100">Apply Filters</button>
+            <form id="filterForm" method="GET" action="{{ url_for('admin.manage_menu_items') }}">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small">Restaurant</label>
+                        <select class="form-select form-select-sm border-railway" name="restaurant_id">
+                            <option value="">All Restaurants</option>
+                            {% for restaurant in restaurants %}
+                            <option value="{{ restaurant.restaurant_id }}" 
+                                    {% if request.args.get('restaurant_id') == restaurant.restaurant_id|string %}selected{% endif %}>
+                                {{ restaurant.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small">Category</label>
+                        <select class="form-select form-select-sm border-railway" name="category">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" 
+                                    {% if request.args.get('category') == cat %}selected{% endif %}>
+                                {{ cat }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small">Availability</label>
+                        <select class="form-select form-select-sm border-railway" name="availability">
+                            <option value="">All Items</option>
+                            <option value="available" {% if request.args.get('availability') == 'available' %}selected{% endif %}>
+                                Available
+                            </option>
+                            <option value="unavailable" {% if request.args.get('availability') == 'unavailable' %}selected{% endif %}>
+                                Unavailable
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small">&nbsp;</label>
+                        <div>
+                            <button type="submit" class="btn btn-sm btn-primary w-100 me-2">
+                                <i class="fas fa-filter me-1"></i>Apply Filters
+                            </button>
+                            {% if request.args %}
+                            <a href="{{ url_for('admin.manage_menu_items') }}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
+                                <i class="fas fa-times me-1"></i>Clear Filters
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
+
+    <!-- Active Filters (if any) -->
+    {% if request.args and (request.args.get('restaurant_id') or request.args.get('category') or request.args.get('availability')) %}
+    <div class="mb-3">
+        <small class="text-muted me-2">Active filters:</small>
+        {% if request.args.get('restaurant_id') %}
+            {% set filtered_restaurant = restaurants|selectattr('restaurant_id', 'equalto', request.args.get('restaurant_id')|int)|first %}
+            {% if filtered_restaurant %}
+            <span class="badge bg-railway-secondary me-2 mb-1">
+                Restaurant: {{ filtered_restaurant.name }}
+                <a href="{{ url_for('admin.manage_menu_items', **remove_arg('restaurant_id')) }}" class="text-white ms-1">
+                    <i class="fas fa-times"></i>
+                </a>
+            </span>
+            {% endif %}
+        {% endif %}
+        
+        {% if request.args.get('category') %}
+        <span class="badge bg-railway-primary me-2 mb-1">
+            Category: {{ request.args.get('category') }}
+            <a href="{{ url_for('admin.manage_menu_items', **remove_arg('category')) }}" class="text-white ms-1">
+                <i class="fas fa-times"></i>
+            </a>
+        </span>
+        {% endif %}
+        
+        {% if request.args.get('availability') %}
+        <span class="badge {% if request.args.get('availability') == 'available' %}bg-success{% else %}bg-danger{% endif %} me-2 mb-1">
+            Status: {{ request.args.get('availability')|title }}
+            <a href="{{ url_for('admin.manage_menu_items', **remove_arg('availability')) }}" class="text-white ms-1">
+                <i class="fas fa-times"></i>
+            </a>
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <!-- Menu Items Table -->
     <div class="card border-railway">
@@ -137,11 +188,22 @@
                             <td colspan="7" class="text-center py-5">
                                 <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
                                 <h5 class="text-muted">No menu items found</h5>
-                                <p class="text-muted small">Add your first menu item to get started</p>
+                                <p class="text-muted small">
+                                    {% if request.args %}
+                                        No items match your filters. Try adjusting your search criteria.
+                                    {% else %}
+                                        Add your first menu item to get started
+                                    {% endif %}
+                                </p>
                                 <button class="btn btn-primary mt-2" data-bs-toggle="modal" 
                                         data-bs-target="#addMenuItemModal">
                                     <i class="fas fa-plus-circle me-2"></i>Add Menu Item
                                 </button>
+                                {% if request.args %}
+                                <a href="{{ url_for('admin.manage_menu_items') }}" class="btn btn-outline-secondary mt-2 ms-2">
+                                    <i class="fas fa-times me-2"></i>Clear Filters
+                                </a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -155,17 +217,46 @@
     {% if menu_items and menu_items|length > 0 %}
     <div class="d-flex justify-content-between align-items-center mt-4">
         <div class="text-muted small">
-            Showing {{ menu_items|length }} of {{ total_items }} items
+            Showing {{ ((current_page - 1) * per_page) + 1 }} to 
+            {{ min(current_page * per_page, total_items) }} of {{ total_items }} items
         </div>
+        {% if total_pages > 1 %}
         <nav>
             <ul class="pagination pagination-sm">
-                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                <!-- Previous button -->
+                <li class="page-item {% if not has_prev %}disabled{% endif %}">
+                    <a class="page-link" 
+                       href="{{ url_for('admin.manage_menu_items', page=current_page-1, **request.args) }}">
+                        Previous
+                    </a>
+                </li>
+                
+                <!-- Page numbers -->
+                {% for page_num in range(1, total_pages + 1) %}
+                    {% if page_num == 1 or page_num == total_pages or (page_num >= current_page - 2 and page_num <= current_page + 2) %}
+                        <li class="page-item {% if page_num == current_page %}active{% endif %}">
+                            <a class="page-link" 
+                               href="{{ url_for('admin.manage_menu_items', page=page_num, **request.args) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                    {% elif page_num == current_page - 3 or page_num == current_page + 3 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                <!-- Next button -->
+                <li class="page-item {% if not has_next %}disabled{% endif %}">
+                    <a class="page-link" 
+                       href="{{ url_for('admin.manage_menu_items', page=current_page+1, **request.args) }}">
+                        Next
+                    </a>
+                </li>
             </ul>
         </nav>
+        {% endif %}
     </div>
     {% endif %}
 </div>
@@ -194,15 +285,9 @@
                             <label class="form-label text-muted small">Category *</label>
                             <select class="form-select border-railway" name="category" required>
                                 <option value="">Select Category</option>
-                                <option value="Pizza">Pizza</option>
-                                <option value="Burgers">Burgers</option>
-                                <option value="Tacos">Tacos</option>
-                                <option value="Sushi">Sushi</option>
-                                <option value="Pasta">Pasta</option>
-                                <option value="Drinks">Drinks</option>
-                                <option value="Sides">Sides</option>
-                                <option value="Desserts">Desserts</option>
-                                <option value="Appetizers">Appetizers</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat }}">{{ cat }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-8">
@@ -224,6 +309,7 @@
                             <label class="form-label text-muted small">Image URL</label>
                             <input type="url" class="form-control border-railway" 
                                    name="image_url" placeholder="https://example.com/image.jpg">
+                            <div id="imagePreview" class="mt-2"></div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-muted small">Availability</label>
@@ -289,23 +375,63 @@
     --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
     --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
 }
+
+.badge a {
+    text-decoration: none;
+    opacity: 0.8;
+}
+
+.badge a:hover {
+    opacity: 1;
+}
 </style>
 
 <script>
 function editMenuItem(itemId) {
+    // Show loading
+    const modalBody = document.querySelector('#editMenuItemModal .modal-body');
+    modalBody.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-2">Loading item details...</p>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editMenuItemModal'));
+    modal.show();
+    
     fetch(`/admin/menu-items/${itemId}/edit`)
         .then(response => response.text())
         .then(html => {
-            document.querySelector('#editMenuItemModal .modal-body').innerHTML = html;
-            new bootstrap.Modal(document.getElementById('editMenuItemModal')).show();
+            modalBody.innerHTML = html;
+        })
+        .catch(error => {
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Failed to load item details. Please try again.
+                </div>
+            `;
+            console.error('Error:', error);
         });
 }
 
 function toggleAvailability(itemId, isAvailable) {
+    if (!confirm(`Are you sure you want to ${isAvailable ? 'disable' : 'enable'} this menu item?`)) return;
+    
+    // Show loading on the button
+    const button = event.target.closest('button');
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    button.disabled = true;
+    
     fetch(`/admin/menu-items/${itemId}/toggle-availability`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
         },
         body: JSON.stringify({ is_available: !isAvailable })
     })
@@ -314,22 +440,41 @@ function toggleAvailability(itemId, isAvailable) {
         if (data.success) {
             showToast(data.message, 'success');
             setTimeout(() => location.reload(), 1000);
+        } else {
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+            showToast(data.message || 'Failed to update availability', 'error');
         }
+    })
+    .catch(error => {
+        button.innerHTML = originalHTML;
+        button.disabled = false;
+        showToast('An error occurred. Please try again.', 'error');
+        console.error('Error:', error);
     });
 }
 
 function deleteMenuItem(itemId) {
-    if (!confirm('Are you sure you want to delete this menu item?')) return;
+    if (!confirm('Are you sure you want to delete this menu item? This action cannot be undone.')) return;
     
     fetch(`/admin/menu-items/${itemId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             showToast(data.message, 'success');
             setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast(data.message || 'Failed to delete item', 'error');
         }
+    })
+    .catch(error => {
+        showToast('An error occurred. Please try again.', 'error');
+        console.error('Error:', error);
     });
 }
 
@@ -338,10 +483,20 @@ function saveMenuItem() {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     
+    // Validate
+    if (!validateMenuItemForm(data)) return;
+    
+    // Show loading
+    const saveButton = document.querySelector('#addMenuItemModal .btn-primary');
+    const originalButtonText = saveButton.innerHTML;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+    saveButton.disabled = true;
+    
     fetch('/admin/menu-items', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
         },
         body: JSON.stringify(data)
     })
@@ -351,7 +506,106 @@ function saveMenuItem() {
             showToast(data.message, 'success');
             bootstrap.Modal.getInstance(document.getElementById('addMenuItemModal')).hide();
             setTimeout(() => location.reload(), 1000);
+        } else {
+            saveButton.innerHTML = originalButtonText;
+            saveButton.disabled = false;
+            showToast(data.message || 'Failed to save menu item', 'error');
         }
+    })
+    .catch(error => {
+        saveButton.innerHTML = originalButtonText;
+        saveButton.disabled = false;
+        showToast('An error occurred. Please try again.', 'error');
+        console.error('Error:', error);
+    });
+}
+
+function validateMenuItemForm(data) {
+    if (!data.name || data.name.trim().length < 2) {
+        showToast('Item name must be at least 2 characters', 'error');
+        return false;
+    }
+    
+    if (!data.price || parseFloat(data.price) <= 0) {
+        showToast('Price must be greater than 0', 'error');
+        return false;
+    }
+    
+    if (!data.restaurant_id) {
+        showToast('Please select a restaurant', 'error');
+        return false;
+    }
+    
+    if (!data.category) {
+        showToast('Please select a category', 'error');
+        return false;
+    }
+    
+    return true;
+}
+
+// Image preview functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const imageUrlInput = document.querySelector('input[name="image_url"]');
+    if (imageUrlInput) {
+        imageUrlInput.addEventListener('input', function() {
+            const preview = document.getElementById('imagePreview');
+            if (this.value) {
+                preview.innerHTML = `
+                    <small class="text-muted">Preview:</small><br>
+                    <img src="${this.value}" class="img-thumbnail mt-1" 
+                         style="max-width: 100px; max-height: 100px;" 
+                         onerror="this.onerror=null; this.style.display='none';">
+                `;
+            } else {
+                preview.innerHTML = '';
+            }
+        });
+    }
+    
+    // Auto-submit filters on Enter key in search (if you add search later)
+    document.querySelectorAll('#filterForm input').forEach(input => {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('filterForm').submit();
+            }
+        });
+    });
+});
+
+// Show toast notification
+function showToast(message, type = 'info') {
+    // Check if toast container exists, create if not
+    let toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '1060';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const toastId = 'toast-' + Date.now();
+    const toastHtml = `
+        <div id="${toastId}" class="toast align-items-center border-0 bg-${type}" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body text-white">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+    toast.show();
+    
+    // Remove toast after it's hidden
+    toastElement.addEventListener('hidden.bs.toast', function () {
+        this.remove();
     });
 }
 </script>

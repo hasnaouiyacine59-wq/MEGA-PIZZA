@@ -953,14 +953,13 @@ def view_user(*args, **kwargs):
 @login_required
 @admin_required
 
+@admin_bp.route('/analytics')
+@login_required
+@admin_required
 def analytics(*args, **kwargs):
     """Analytics - placeholder"""
     flash('Analytics dashboard is coming soon!', 'info')
     return redirect(url_for('admin.dashboard'))
-@admin_bp.route('/system/health')
-@login_required
-@admin_required
-
 def system_health():
     try:
         db.session.execute('SELECT 1')

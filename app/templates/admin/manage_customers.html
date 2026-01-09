@@ -1,0 +1,29 @@
+
+{% extends "admin/base_dashboard.html" %}
+
+{% block title %}Manage Customers{% endblock %}
+
+{% block content %}
+<div class="dashboard-content">
+    <div class="page-header">
+        <h1>Customer Management</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Customer
+            </button>
+        </div>
+    </div>
+
+    <!-- Simple placeholder -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Customers</h5>
+            <p class="card-text">Customer management interface will be implemented here.</p>
+            <p>This is a placeholder page.</p>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

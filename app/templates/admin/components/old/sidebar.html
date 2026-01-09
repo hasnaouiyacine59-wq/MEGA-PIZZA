@@ -54,13 +54,30 @@
         <a href="{{ url_for('admin.manage_categories') }}" class="menu-item {% if request.endpoint == 'admin.manage_categories' %}active{% endif %}">
             <div class="menu-icon"><i class="fas fa-tags"></i></div>
             <div class="menu-text">Categories</div>
-            <div class="menu-badge">{{ stats.categories_count if stats else 0 }}</div>
         </a>
         
         <a href="{{ url_for('admin.manage_reviews') }}" class="menu-item {% if request.endpoint == 'admin.manage_reviews' %}active{% endif %}">
             <div class="menu-icon"><i class="fas fa-star"></i></div>
             <div class="menu-text">Reviews</div>
             <div class="menu-badge">{{ stats.total_reviews if stats else 0 }}</div>
+        </a>
+        
+        <div class="menu-section">TESTING</div>
+        <a href="{{ url_for('test.test_dashboard') }}" class="menu-item {% if request.endpoint == 'test.test_dashboard' %}active{% endif %}">
+            <div class="menu-icon"><i class="fas fa-vial"></i></div>
+            <div class="menu-text">Test Orders</div>
+        </a>
+        <!-- Add this to your admin sidebar -->
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('test.test_api') }}">
+        <i class="fas fa-vial me-2"></i>
+        API Tester
+    </a>
+</li>
+        
+        <a href="{{ url_for('test.android_simulator') }}" class="menu-item {% if request.endpoint == 'test.android_simulator' %}active{% endif %}">
+            <div class="menu-icon"><i class="fas fa-mobile-alt"></i></div>
+            <div class="menu-text">Android Simulator</div>
         </a>
         
         <div class="menu-section">REPORTS</div>
@@ -71,28 +88,12 @@
         
         <a href="{{ url_for('admin.revenue_report') }}" class="menu-item {% if request.endpoint == 'admin.revenue_report' %}active{% endif %}">
             <div class="menu-icon"><i class="fas fa-file-invoice-dollar"></i></div>
-            <div class="menu-text">Revenue Report</div>
+            <div class="menu-text">Revenue</div>
         </a>
         
         <a href="{{ url_for('admin.sales_report') }}" class="menu-item {% if request.endpoint == 'admin.sales_report' %}active{% endif %}">
             <div class="menu-icon"><i class="fas fa-chart-line"></i></div>
             <div class="menu-text">Sales Report</div>
-        </a>
-        
-        <div class="menu-section">TESTING</div>
-        <a href="{{ url_for('test.test_dashboard') }}" class="menu-item {% if request.endpoint == 'test.test_dashboard' %}active{% endif %}">
-            <div class="menu-icon"><i class="fas fa-vial"></i></div>
-            <div class="menu-text">Test Orders</div>
-        </a>
-        
-        <a href="{{ url_for('test.test_api') }}" class="menu-item {% if request.endpoint == 'test.test_api' %}active{% endif %}">
-            <div class="menu-icon"><i class="fas fa-vial"></i></div>
-            <div class="menu-text">API Tester</div>
-        </a>
-        
-        <a href="{{ url_for('test.android_simulator') }}" class="menu-item {% if request.endpoint == 'test.android_simulator' %}active{% endif %}">
-            <div class="menu-icon"><i class="fas fa-mobile-alt"></i></div>
-            <div class="menu-text">Android Simulator</div>
         </a>
         
         <div class="menu-section">SYSTEM</div>
@@ -111,11 +112,6 @@
         <a href="{{ url_for('main.index') }}" class="menu-item">
             <div class="menu-icon"><i class="fas fa-home"></i></div>
             <div class="menu-text">View Site</div>
-        </a>
-        
-        <a href="{{ url_for('auth.logout') }}" class="menu-item logout-item">
-            <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
-            <div class="menu-text">Logout</div>
         </a>
     </div>
 </div>

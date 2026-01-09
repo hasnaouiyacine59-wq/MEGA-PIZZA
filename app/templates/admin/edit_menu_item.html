@@ -1,0 +1,166 @@
+<!-- templates/admin/edit_menu_item.html -->
+<form id="editMenuItemForm">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label text-muted small">Restaurant *</label>
+            <select class="form-select border-railway" name="restaurant_id" required>
+                <option value="">Select Restaurant</option>
+                {% for restaurant in restaurants %}
+                <option value="{{ restaurant.restaurant_id }}" 
+                        {% if item.restaurant_id == restaurant.restaurant_id %}selected{% endif %}>
+                    {{ restaurant.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-muted small">Category *</label>
+            <select class="form-select border-railway" name="category" required>
+                <option value="">Select Category</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if item.category == cat %}selected{% endif %}>
+                    {{ cat }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-8">
+            <label class="form-label text-muted small">Item Name *</label>
+            <input type="text" class="form-control border-railway" 
+                   name="name" value="{{ item.name }}" placeholder="e.g., Pepperoni Pizza" required>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label text-muted small">Price *</label>
+            <input type="number" class="form-control border-railway" 
+                   name="price" value="{{ "%.2f"|format(item.price) }}" min="0" step="0.01" placeholder="0.00" required>
+        </div>
+        <div class="col-12">
+            <label class="form-label text-muted small">Description</label>
+            <textarea class="form-control border-railway" name="description" 
+                      rows="3" placeholder="Describe the menu item...">{{ item.description }}</textarea>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-muted small">Image URL</label>
+            <input type="url" class="form-control border-railway" 
+                   name="image_url" value="{{ item.image_url or '' }}" 
+                   placeholder="https://example.com/image.jpg">
+            <div id="editImagePreview" class="mt-2">
+                {% if item.image_url %}
+                <small class="text-muted">Current:</small><br>
+                <img src="{{ item.image_url }}" class="img-thumbnail mt-1" 
+                     style="max-width: 100px; max-height: 100px;" 
+                     onerror="this.style.display='none'">
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-muted small">Availability</label>
+            <div class="form-check">
+                <input class="form-check-input border-railway" type="checkbox" 
+                       name="is_available" id="editIsAvailable" 
+                       {% if item.is_available %}checked{% endif %}>
+                <label class="form-check-label text-muted small" for="editIsAvailable">
+                    Available for ordering
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-footer border-railway mt-4">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="updateMenuItem('{{ item.item_id }}')">
+            <i class="fas fa-save me-2"></i>Update Menu Item
+        </button>
+    </div>
+</form>
+
+<script>
+// Image preview for edit form
+// Add this at the beginning of the script
+function getCSRFToken() {
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    return metaTag ? metaTag.getAttribute('content') : '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const imageUrlInput = document.querySelector('#editMenuItemForm input[name="image_url"]');
+    if (imageUrlInput) {
+        imageUrlInput.addEventListener('input', function() {
+            const preview = document.getElementById('editImagePreview');
+            if (this.value) {
+                preview.innerHTML = `
+                    <small class="text-muted">Preview:</small><br>
+                    <img src="${this.value}" class="img-thumbnail mt-1" 
+                         style="max-width: 100px; max-height: 100px;" 
+                         onerror="this.onerror=null; this.style.display='none'">
+                `;
+            } else {
+                preview.innerHTML = '';
+            }
+        });
+    }
+});
+
+function updateMenuItem(itemId) {
+    const form = document.getElementById('editMenuItemForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Convert checkbox value to boolean
+    data.is_available = document.getElementById('editIsAvailable').checked;
+    
+    // Validate
+    if (!data.name || data.name.trim().length < 2) {
+        showToast('Item name must be at least 2 characters', 'error');
+        return;
+    }
+    
+    if (!data.price || parseFloat(data.price) <= 0) {
+        showToast('Price must be greater than 0', 'error');
+        return;
+    }
+    
+    if (!data.restaurant_id) {
+        showToast('Please select a restaurant', 'error');
+        return;
+    }
+    
+    if (!data.category) {
+        showToast('Please select a category', 'error');
+        return;
+    }
+    
+    // Show loading
+    const saveButton = document.querySelector('#editMenuItemForm .btn-primary');
+    const originalButtonText = saveButton.innerHTML;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+    saveButton.disabled = true;
+    
+    fetch(`/admin/menu-items/${itemId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('editMenuItemModal')).hide();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            saveButton.innerHTML = originalButtonText;
+            saveButton.disabled = false;
+            showToast(data.message || 'Failed to update menu item', 'error');
+        }
+    })
+    .catch(error => {
+        saveButton.innerHTML = originalButtonText;
+        saveButton.disabled = false;
+        showToast('An error occurred. Please try again.', 'error');
+        console.error('Error:', error);
+    });
+}
+</script>

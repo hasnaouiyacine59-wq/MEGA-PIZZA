@@ -1,0 +1,795 @@
+<!-- /home/odyx/Desktop/09-01-2026-mega/MEGA-PIZZA/app/templates/admin/test_order_quick.html -->
+
+{% extends "admin/base_admin.html" %}
+
+{% block title %}API Order Tester - Mega Pizza Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mt-4">API Order Tester</h1>
+        <div>
+            <button class="btn btn-outline-primary" onclick="runQuickTest()">
+                <i class="fas fa-bolt me-2"></i>Quick Test
+            </button>
+            <button class="btn btn-outline-success" onclick="runFullTest()">
+                <i class="fas fa-play-circle me-2"></i>Full Test
+            </button>
+        </div>
+    </div>
+
+    <!-- Connection Status Card -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4" id="connection-card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small">API Status</div>
+                        <div class="fw-bold" id="api-status">Checking...</div>
+                    </div>
+                    <div id="connection-icon">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="javascript:void(0)" onclick="testConnection()">
+                        Test Connection
+                    </a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4" id="database-card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small">Database</div>
+                        <div class="fw-bold" id="db-status">Checking...</div>
+                    </div>
+                    <div id="database-icon">
+                        <i class="fas fa-database fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4" id="orders-card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small">Total Orders</div>
+                        <div class="fw-bold" id="orders-count">0</div>
+                    </div>
+                    <div id="orders-icon">
+                        <i class="fas fa-shopping-cart fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4" id="drivers-card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small">Available Drivers</div>
+                        <div class="fw-bold" id="drivers-count">0</div>
+                    </div>
+                    <div id="drivers-icon">
+                        <i class="fas fa-motorcycle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Controls -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-vial me-1"></i>
+            Test Controls
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">API Base URL</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-link"></i></span>
+                        <input type="text" class="form-control" id="api-url" value="http://localhost:8000/api/v1">
+                        <button class="btn btn-outline-secondary" onclick="updateApiUrl()">Update</button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Credentials</label>
+                    <div class="row g-2">
+                        <div class="col">
+                            <input type="text" class="form-control" id="username" placeholder="Username" value="admin">
+                        </div>
+                        <div class="col">
+                            <input type="password" class="form-control" id="password" placeholder="Password" value="Admin@123">
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" onclick="testAuth()">Test Login</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" onclick="testRestaurants()">
+                    <i class="fas fa-utensils me-2"></i>Test Restaurants
+                </button>
+                <button class="btn btn-success" onclick="testMenu()">
+                    <i class="fas fa-list-alt me-2"></i>Test Menu
+                </button>
+                <button class="btn btn-warning" onclick="testCreateOrder()">
+                    <i class="fas fa-plus-circle me-2"></i>Test Create Order
+                </button>
+                <button class="btn btn-info" onclick="testDrivers()">
+                    <i class="fas fa-motorcycle me-2"></i>Test Drivers
+                </button>
+                <button class="btn btn-danger" onclick="clearLogs()">
+                    <i class="fas fa-trash me-2"></i>Clear Logs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Panels -->
+    <div class="row">
+        <!-- Test Log -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-terminal me-1"></i>
+                    Test Log
+                    <span class="badge bg-secondary float-end" id="log-count">0 logs</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="test-log">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Test</th>
+                                    <th>Status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="log-body">
+                                <!-- Logs will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Test Results
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Test Summary</h6>
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-success" id="progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span id="passed-count">Passed: 0</span>
+                            <span id="failed-count">Failed: 0</span>
+                            <span id="total-count">Total: 0</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6>Current Test Data</h6>
+                        <div class="mb-2">
+                            <small class="text-muted">Restaurant:</small>
+                            <div id="current-restaurant">None</div>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">Menu Items:</small>
+                            <div id="current-menu-items">0</div>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">Last Order:</small>
+                            <div id="last-order">None</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h6>Quick Actions</h6>
+                        <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="viewApiDocs()">
+                            <i class="fas fa-book me-2"></i>View API Docs
+                        </button>
+                        <button class="btn btn-sm btn-outline-success w-100 mb-2" onclick="exportLogs()">
+                            <i class="fas fa-download me-2"></i>Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger w-100" onclick="resetTests()">
+                            <i class="fas fa-redo me-2"></i>Reset All Tests
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Creation Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-edit me-1"></i>
+                    Create Test Order
+                </div>
+                <div class="card-body">
+                    <form id="order-form">
+                        <div class="mb-3">
+                            <label class="form-label">Customer ID</label>
+                            <input type="text" class="form-control" id="customer-id" value="CUST-001" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Restaurant ID</label>
+                            <input type="text" class="form-control" id="restaurant-id" value="REST-001" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Items (JSON)</label>
+                            <textarea class="form-control" id="order-items" rows="3" required>
+[
+    {
+        "item_id": "ITEM-001",
+        "quantity": 2
+    }
+]</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Type</label>
+                            <select class="form-select" id="delivery-type">
+                                <option value="delivery">Delivery</option>
+                                <option value="pickup">Pickup</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Payment Method</label>
+                            <select class="form-select" id="payment-method">
+                                <option value="cash">Cash</option>
+                                <option value="card">Card</option>
+                                <option value="online">Online</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary w-100" onclick="submitTestOrder()">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Test Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Modal -->
+<div class="modal fade" id="resultsModal" tabindex="-1" aria-labelledby="resultsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultsModalLabel">Test Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="results-content" class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="copyResults()">Copy Results</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Configuration
+let BASE_URL = "http://localhost:8000/api/v1";
+let JWT_TOKEN = null;
+let USER_INFO = null;
+let TEST_DATA = {
+    restaurant: null,
+    menuItems: [],
+    orders: []
+};
+let TEST_RESULTS = {
+    passed: 0,
+    failed: 0,
+    total: 0,
+    logs: []
+};
+
+// DOM Elements
+const logBody = document.getElementById('log-body');
+const logCount = document.getElementById('log-count');
+const progressBar = document.getElementById('progress-bar');
+const passedCount = document.getElementById('passed-count');
+const failedCount = document.getElementById('failed-count');
+const totalCount = document.getElementById('total-count');
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateApiUrl();
+    testConnection();
+});
+
+// Utility Functions
+function logTest(testName, status, details = '') {
+    const time = new Date().toLocaleTimeString();
+    const statusClass = status === 'success' ? 'success' : status === 'warning' ? 'warning' : 'danger';
+    const statusIcon = status === 'success' ? '✓' : status === 'warning' ? '⚠' : '✗';
+    
+    const log = {
+        time,
+        testName,
+        status,
+        details,
+        timestamp: new Date()
+    };
+    
+    TEST_RESULTS.logs.push(log);
+    TEST_RESULTS.total++;
+    
+    if (status === 'success') {
+        TEST_RESULTS.passed++;
+    } else if (status === 'error') {
+        TEST_RESULTS.failed++;
+    }
+    
+    updateResultsDisplay();
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${time}</td>
+        <td>${testName}</td>
+        <td><span class="badge bg-${statusClass}">${statusIcon} ${status.toUpperCase()}</span></td>
+        <td>${details.substring(0, 50)}${details.length > 50 ? '...' : ''}</td>
+    `;
+    
+    row.onclick = () => showResultDetails(log);
+    logBody.prepend(row);
+    logCount.textContent = `${TEST_RESULTS.logs.length} logs`;
+    
+    // Scroll to top
+    logBody.parentElement.scrollTop = 0;
+}
+
+function updateResultsDisplay() {
+    const total = TEST_RESULTS.total;
+    const passed = TEST_RESULTS.passed;
+    const percentage = total > 0 ? Math.round((passed / total) * 100) : 0;
+    
+    progressBar.style.width = `${percentage}%`;
+    passedCount.textContent = `Passed: ${passed}`;
+    failedCount.textContent = `Failed: ${TEST_RESULTS.failed}`;
+    totalCount.textContent = `Total: ${total}`;
+}
+
+function showResultDetails(log) {
+    const content = document.getElementById('results-content');
+    content.textContent = JSON.stringify(log, null, 2);
+    
+    const modal = new bootstrap.Modal(document.getElementById('resultsModal'));
+    modal.show();
+}
+
+function updateApiUrl() {
+    BASE_URL = document.getElementById('api-url').value;
+    logTest('Configuration', 'info', `API URL updated to: ${BASE_URL}`);
+}
+
+function clearLogs() {
+    logBody.innerHTML = '';
+    TEST_RESULTS = { passed: 0, failed: 0, total: 0, logs: [] };
+    updateResultsDisplay();
+    logTest('System', 'info', 'Logs cleared');
+}
+
+function exportLogs() {
+    const dataStr = JSON.stringify(TEST_RESULTS.logs, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `api-test-logs-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    logTest('System', 'success', 'Logs exported successfully');
+}
+
+function resetTests() {
+    clearLogs();
+    TEST_DATA = { restaurant: null, menuItems: [], orders: [] };
+    JWT_TOKEN = null;
+    USER_INFO = null;
+    
+    document.getElementById('current-restaurant').textContent = 'None';
+    document.getElementById('current-menu-items').textContent = '0';
+    document.getElementById('last-order').textContent = 'None';
+    
+    logTest('System', 'info', 'All tests reset');
+}
+
+function copyResults() {
+    const content = document.getElementById('results-content').textContent;
+    navigator.clipboard.writeText(content).then(() => {
+        alert('Results copied to clipboard!');
+    });
+}
+
+// API Test Functions
+async function testConnection() {
+    const card = document.getElementById('connection-card');
+    const status = document.getElementById('api-status');
+    const icon = document.getElementById('connection-icon');
+    
+    try {
+        card.className = 'card bg-secondary text-white mb-4';
+        status.textContent = 'Testing...';
+        icon.innerHTML = '<i class="fas fa-spinner fa-spin fa-2x"></i>';
+        
+        const response = await fetch(`${BASE_URL}/health`, { timeout: 5000 });
+        const data = await response.json();
+        
+        if (response.ok) {
+            card.className = 'card bg-success text-white mb-4';
+            status.textContent = 'Connected';
+            icon.innerHTML = '<i class="fas fa-check-circle fa-2x"></i>';
+            
+            // Update stats
+            document.getElementById('db-status').textContent = data.data.database;
+            document.getElementById('orders-count').textContent = data.data.statistics.total_orders;
+            document.getElementById('drivers-count').textContent = data.data.statistics.available_drivers;
+            
+            logTest('API Connection', 'success', `Status: ${data.data.status}, Orders: ${data.data.statistics.total_orders}`);
+            
+            // Test database connection
+            testDatabase();
+            
+        } else {
+            card.className = 'card bg-danger text-white mb-4';
+            status.textContent = 'Failed';
+            icon.innerHTML = '<i class="fas fa-times-circle fa-2x"></i>';
+            logTest('API Connection', 'error', `HTTP ${response.status}: ${data.message}`);
+        }
+    } catch (error) {
+        card.className = 'card bg-danger text-white mb-4';
+        status.textContent = 'Error';
+        icon.innerHTML = '<i class="fas fa-times-circle fa-2x"></i>';
+        logTest('API Connection', 'error', error.message);
+    }
+}
+
+async function testDatabase() {
+    const card = document.getElementById('database-card');
+    const status = document.getElementById('db-status');
+    
+    try {
+        const response = await fetch(`${BASE_URL}/health`);
+        const data = await response.json();
+        
+        if (data.data.database === 'connected') {
+            card.className = 'card bg-success text-white mb-4';
+            status.textContent = 'Connected';
+            logTest('Database', 'success', 'Database connection successful');
+        } else {
+            card.className = 'card bg-danger text-white mb-4';
+            status.textContent = 'Disconnected';
+            logTest('Database', 'error', 'Database connection failed');
+        }
+    } catch (error) {
+        logTest('Database', 'error', error.message);
+    }
+}
+
+async function testAuth() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    if (!username || !password) {
+        logTest('Authentication', 'error', 'Username and password required');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            JWT_TOKEN = data.data.access_token;
+            USER_INFO = data.data.user;
+            
+            logTest('Authentication', 'success', 
+                `Logged in as ${USER_INFO.username} (${USER_INFO.role})`);
+            
+            // Enable protected test buttons
+            document.querySelectorAll('[onclick*="testCreateOrder"], [onclick*="testDrivers"]')
+                .forEach(btn => btn.disabled = false);
+                
+        } else {
+            logTest('Authentication', 'error', 
+                `Login failed: ${data.message || 'Invalid credentials'}`);
+        }
+    } catch (error) {
+        logTest('Authentication', 'error', error.message);
+    }
+}
+
+async function testRestaurants() {
+    try {
+        const response = await fetch(`${BASE_URL}/restaurants`);
+        const data = await response.json();
+        
+        if (response.ok && data.data.restaurants.length > 0) {
+            TEST_DATA.restaurant = data.data.restaurants[0];
+            document.getElementById('current-restaurant').textContent = 
+                `${TEST_DATA.restaurant.name} (${TEST_DATA.restaurant.restaurant_id})`;
+            
+            logTest('Restaurants', 'success', 
+                `Found ${data.data.count} restaurants. Selected: ${TEST_DATA.restaurant.name}`);
+        } else {
+            logTest('Restaurants', response.ok ? 'warning' : 'error', 
+                response.ok ? 'No restaurants found' : `HTTP ${response.status}: ${data.message}`);
+        }
+    } catch (error) {
+        logTest('Restaurants', 'error', error.message);
+    }
+}
+
+async function testMenu() {
+    if (!TEST_DATA.restaurant) {
+        logTest('Menu', 'warning', 'Please select a restaurant first');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${BASE_URL}/restaurants/${TEST_DATA.restaurant.restaurant_id}/menu`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            TEST_DATA.menuItems = data.data.menu_items;
+            document.getElementById('current-menu-items').textContent = TEST_DATA.menuItems.length;
+            
+            logTest('Menu', 'success', 
+                `Found ${TEST_DATA.menuItems.length} menu items for ${TEST_DATA.restaurant.name}`);
+        } else {
+            logTest('Menu', 'error', `HTTP ${response.status}: ${data.message}`);
+        }
+    } catch (error) {
+        logTest('Menu', 'error', error.message);
+    }
+}
+
+async function testCreateOrder() {
+    if (!JWT_TOKEN) {
+        logTest('Create Order', 'warning', 'Please login first');
+        return;
+    }
+    
+    if (!TEST_DATA.restaurant || TEST_DATA.menuItems.length === 0) {
+        logTest('Create Order', 'warning', 'Please load restaurant and menu first');
+        return;
+    }
+    
+    const orderData = {
+        customer_id: "CUST-001",
+        restaurant_id: TEST_DATA.restaurant.restaurant_id,
+        items: [
+            {
+                item_id: TEST_DATA.menuItems[0].item_id,
+                quantity: 2
+            }
+        ],
+        delivery_type: "delivery",
+        payment_method: "cash"
+    };
+    
+    try {
+        const response = await fetch(`${BASE_URL}/orders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${JWT_TOKEN}`
+            },
+            body: JSON.stringify(orderData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.status === 201) {
+            TEST_DATA.orders.push(data.data);
+            document.getElementById('last-order').textContent = data.data.order_id;
+            
+            logTest('Create Order', 'success', 
+                `Order created: ${data.data.order_id}, Total: $${data.data.total_amount}`);
+        } else {
+            logTest('Create Order', 'error', 
+                `HTTP ${response.status}: ${data.message || 'Order creation failed'}`);
+        }
+    } catch (error) {
+        logTest('Create Order', 'error', error.message);
+    }
+}
+
+async function testDrivers() {
+    if (!JWT_TOKEN) {
+        logTest('Drivers', 'warning', 'Please login first');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${BASE_URL}/drivers/available`, {
+            headers: { 'Authorization': `Bearer ${JWT_TOKEN}` }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            logTest('Available Drivers', 'success', 
+                `Found ${data.data.count} available drivers`);
+        } else {
+            logTest('Available Drivers', 'error', 
+                `HTTP ${response.status}: ${data.message}`);
+        }
+    } catch (error) {
+        logTest('Available Drivers', 'error', error.message);
+    }
+}
+
+async function submitTestOrder() {
+    if (!JWT_TOKEN) {
+        alert('Please login first');
+        return;
+    }
+    
+    const orderData = {
+        customer_id: document.getElementById('customer-id').value,
+        restaurant_id: document.getElementById('restaurant-id').value,
+        items: JSON.parse(document.getElementById('order-items').value),
+        delivery_type: document.getElementById('delivery-type').value,
+        payment_method: document.getElementById('payment-method').value,
+        special_instructions: "Test order from admin dashboard"
+    };
+    
+    try {
+        const response = await fetch(`${BASE_URL}/orders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${JWT_TOKEN}`
+            },
+            body: JSON.stringify(orderData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.status === 201) {
+            alert(`✅ Order created successfully!\nOrder ID: ${data.data.order_id}\nTotal: $${data.data.total_amount}`);
+            logTest('Manual Order', 'success', 
+                `Order ${data.data.order_id} created successfully`);
+        } else {
+            alert(`❌ Order creation failed: ${data.message}`);
+            logTest('Manual Order', 'error', 
+                `Failed: ${data.message}`);
+        }
+    } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+        logTest('Manual Order', 'error', error.message);
+    }
+}
+
+// Composite Tests
+async function runQuickTest() {
+    logTest('Quick Test', 'info', 'Starting quick test suite...');
+    
+    await testConnection();
+    await testAuth();
+    
+    if (JWT_TOKEN) {
+        await testRestaurants();
+        await testDrivers();
+    }
+    
+    logTest('Quick Test', 'success', 'Quick test completed');
+}
+
+async function runFullTest() {
+    logTest('Full Test', 'info', 'Starting full test suite...');
+    
+    await testConnection();
+    await testAuth();
+    
+    if (JWT_TOKEN) {
+        await testRestaurants();
+        await testMenu();
+        await testCreateOrder();
+        await testDrivers();
+        
+        // Test error scenarios
+        await testErrorScenarios();
+    }
+    
+    logTest('Full Test', 'success', 'Full test suite completed');
+}
+
+async function testErrorScenarios() {
+    // Test invalid login
+    try {
+        const response = await fetch(`${BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: 'invalid', password: 'wrong' })
+        });
+        
+        if (response.status === 401) {
+            logTest('Error Handling', 'success', 'Invalid login correctly returns 401');
+        }
+    } catch (error) {
+        // Ignore for this test
+    }
+    
+    // Test invalid endpoint
+    try {
+        const response = await fetch(`${BASE_URL}/invalid-endpoint`);
+        if (response.status === 404) {
+            logTest('Error Handling', 'success', 'Invalid endpoint correctly returns 404');
+        }
+    } catch (error) {
+        // Ignore for this test
+    }
+}
+
+function viewApiDocs() {
+    window.open(`${BASE_URL}/docs`, '_blank');
+}
+</script>
+
+<style>
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+#test-log tbody tr {
+    cursor: pointer;
+}
+
+#test-log tbody tr:hover {
+    background-color: rgba(0,0,0,0.03);
+}
+
+.progress {
+    height: 10px;
+}
+
+.badge {
+    font-size: 0.8em;
+}
+
+#order-form textarea {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.modal pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+</style>
+{% endblock %}

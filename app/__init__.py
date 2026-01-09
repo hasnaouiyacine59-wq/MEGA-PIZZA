@@ -1,4 +1,5 @@
-from flask import Flask, jsonify
+# app/__init__.py
+from flask import Flask, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
@@ -6,8 +7,9 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from datetime import timedelta
 import os
+import base64
 
-# Create extensions first
+# Create extensions first (but don't import from app yet)
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
@@ -40,14 +42,16 @@ def create_app():
     login_manager.init_app(app)
     jwt.init_app(app)
     cors.init_app(app)
+
     
     # Configure login manager
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'info'
     
-    # User loader
+    # User loader - import inside function to avoid circular imports
     @login_manager.user_loader
     def load_user(user_id):
+        # Import here to avoid circular import
         from .models import User
         return User.query.get(int(user_id))
     
@@ -76,7 +80,7 @@ def create_app():
             "error": "authorization_required"
         }), 401
     
-    # Context processor for has_endpoint (from original version)
+    # Context processor for has_endpoint
     @app.context_processor
     def utility_processor():
         from flask import url_for
@@ -88,27 +92,42 @@ def create_app():
                 return False
         return dict(has_endpoint=has_endpoint)
     
-    # Register blueprints
+    # Custom CSRF token generation
+    def generate_csrf_token():
+        if '_csrf_token' not in session:
+            session['_csrf_token'] = base64.b64encode(os.urandom(32)).decode('utf-8')
+        return session['_csrf_token']
+    
+    # Make CSRF functions available to app
+    app.generate_csrf_token = generate_csrf_token
+    
+    # Add CSRF token to all templates
+    @app.context_processor
+    def inject_csrf_token():
+        return dict(csrf_token=generate_csrf_token())
+    
+    # Register blueprints - import inside function to avoid circular imports
     from .auth import auth_bp
     from .admin import admin_bp
     from .routes import main_bp
-    from .api import api_bp  # Import the new API blueprint
+    from .api import api_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(main_bp)
-    app.register_blueprint(api_bp, url_prefix='/api')  # Register API blueprint with prefix
+    app.register_blueprint(api_bp, url_prefix='/api')
     
     # Only register test blueprint in development mode
     if app.config['DEBUG'] or os.environ.get('ENABLE_TEST_ROUTES', 'false').lower() == 'true':
         try:
+            # Import test blueprint inside the condition
             from .test_routes import test_bp
             app.register_blueprint(test_bp, url_prefix='/test')
             app.logger.info("Test blueprint registered - available at /test/*")
         except ImportError as e:
             app.logger.warning(f"Test blueprint not available: {e}")
     
-    # Add development-only error handlers (from original version)
+    # Add development-only error handlers
     if app.config['DEBUG']:
         @app.errorhandler(404)
         def not_found_error(error):
@@ -124,7 +143,7 @@ def create_app():
             </ul>
             """, 404
     
-    # Add health check endpoint (recommended addition)
+    # Add health check endpoint
     @app.route('/health')
     def health_check():
         return jsonify({

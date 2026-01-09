@@ -63,7 +63,7 @@
             </a>
             
             <div class="menu-section">MANAGEMENT</div>
-            <a href="{{ url_for('admin.manage_customers') }}" class="menu-item">
+            <a href="{{ url_for('admin.manage_users') }}" class="menu-item">
                 <div class="menu-icon"><i class="fas fa-users"></i></div>
                 <div class="menu-text">Users</div>
                 <div class="menu-badge">{{ stats.total_users if stats else 0 }}</div>
@@ -105,7 +105,7 @@
                 <div class="menu-text">Categories</div>
             </a>
             
-            <a href="{{ url_for('admin.dashboard') }}" class="menu-item">
+            <a href="{{ url_for('admin.manage_reviews') }}" class="menu-item">
                 <div class="menu-icon"><i class="fas fa-star"></i></div>
                 <div class="menu-text">Reviews</div>
                 <div class="menu-badge">{{ stats.total_reviews if stats else 0 }}</div>

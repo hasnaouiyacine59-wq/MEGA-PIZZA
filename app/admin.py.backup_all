@@ -824,143 +824,9 @@ def manage_restaurants():
 # ============================================
 # SYSTEM MANAGEMENT
 # ============================================
-
-# ============================================
-# ALL MISSING ENDPOINTS FOR TEMPLATES
-# ============================================
-
-@admin_bp.route("/add-user")
-@login_required
-@admin_required
-def add_user(*args, **kwargs):
-    """Add User - placeholder"""
-    flash('Add User is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/delete-user/<int:user_id>")
-@login_required
-@admin_required
-def delete_user(*args, **kwargs):
-    """Delete User - placeholder"""
-    flash('Delete User is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/orders/<string:order_id>/edit")
-@login_required
-@admin_required
-def edit_order(*args, **kwargs):
-    """Edit Order - placeholder"""
-    flash('Edit Order is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/users/<int:user_id>/edit")
-@login_required
-@admin_required
-def edit_user(*args, **kwargs):
-    """Edit User - placeholder"""
-    flash('Edit User is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/export-sales-report")
-@login_required
-@admin_required
-def export_sales_report(*args, **kwargs):
-    """Export Sales Report - placeholder"""
-    flash('Export Sales Report is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/reviews")
-@login_required
-@admin_required
-def manage_reviews(*args, **kwargs):
-    """Manage Reviews - placeholder"""
-    flash('Manage Reviews is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/users")
-@login_required
-@admin_required
-def manage_users(*args, **kwargs):
-    """Manage Users - placeholder"""
-    flash('Manage Users is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/profile")
-@login_required
-@admin_required
-def profile(*args, **kwargs):
-    """Profile - placeholder"""
-    flash('Profile is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/revenue-report")
-@login_required
-@admin_required
-def revenue_report(*args, **kwargs):
-    """Revenue Report - placeholder"""
-    flash('Revenue Report is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/sales-report")
-@login_required
-@admin_required
-def sales_report(*args, **kwargs):
-    """Sales Report - placeholder"""
-    flash('Sales Report is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/settings")
-@login_required
-@admin_required
-def settings(*args, **kwargs):
-    """Settings - placeholder"""
-    flash('Settings is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/users/<int:user_id>/update")
-@login_required
-@admin_required
-def update_user(*args, **kwargs):
-    """Update User - placeholder"""
-    flash('Update User is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/drivers/<int:driver_id>")
-@login_required
-@admin_required
-def view_driver(*args, **kwargs):
-    """View Driver - placeholder"""
-    flash('View Driver is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/orders/<string:order_id>")
-@login_required
-@admin_required
-def view_order(*args, **kwargs):
-    """View Order - placeholder"""
-    flash('View Order is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route("/users/<int:user_id>")
-@login_required
-@admin_required
-def view_user(*args, **kwargs):
-    """View User - placeholder"""
-    flash('View User is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-
 @admin_bp.route('/system/health')
 @login_required
 @admin_required
-
-def analytics(*args, **kwargs):
-    """Analytics - placeholder"""
-    flash('Analytics dashboard is coming soon!', 'info')
-    return redirect(url_for('admin.dashboard'))
-@admin_bp.route('/system/health')
-@login_required
-@admin_required
-
 def system_health():
     try:
         db.session.execute('SELECT 1')
@@ -1016,3 +882,51 @@ def create_admin():
 # ============================================
 # MISSING ENDPOINTS FOR TEMPLATE
 # ============================================
+
+@admin_bp.route('/analytics')
+@login_required
+@admin_required
+def analytics():
+    """Analytics dashboard - placeholder"""
+    flash('Analytics dashboard is coming soon!', 'info')
+    return redirect(url_for('admin.dashboard'))
+
+@admin_bp.route('/revenue-report')
+@login_required
+@admin_required
+def revenue_report():
+    """Revenue report - placeholder"""
+    flash('Revenue report is coming soon!', 'info')
+    return redirect(url_for('admin.dashboard'))
+
+@admin_bp.route('/sales-report')
+@login_required
+@admin_required
+def sales_report():
+    """Sales report - placeholder"""
+    flash('Sales report is coming soon!', 'info')
+    return redirect(url_for('admin.dashboard'))
+
+@admin_bp.route('/settings')
+@login_required
+@admin_required
+def settings():
+    """Settings - placeholder"""
+    flash('Settings section is coming soon!', 'info')
+    return redirect(url_for('admin.dashboard'))
+
+@admin_bp.route('/users')
+@login_required
+@admin_required
+def manage_users():
+    """User management - redirect to customers for now"""
+    flash('User management is available at Customers section.', 'info')
+    return redirect(url_for('admin.manage_customers'))
+
+@admin_bp.route('/profile')
+@login_required
+@admin_required
+def profile():
+    """Admin profile - placeholder"""
+    flash('Profile section is coming soon!', 'info')
+    return redirect(url_for('admin.dashboard'))
